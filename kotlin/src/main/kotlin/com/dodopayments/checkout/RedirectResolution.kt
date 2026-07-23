@@ -16,10 +16,14 @@ internal object RedirectResolution {
         val scheme = UrlParts.from(returnUrl).scheme ?: return
         val probe = Intent(Intent.ACTION_VIEW, Uri.parse("$scheme://dodo-checkout-probe"))
         val resolved = context.packageManager.queryIntentActivities(probe, PackageManager.MATCH_DEFAULT_ONLY)
-        if (resolved.isEmpty()) {
+        val resolvesToThisApp = resolved.any {
+            it.activityInfo?.packageName == context.packageName &&
+                it.activityInfo?.name == BrowserRedirectActivity::class.java.name
+        }
+        if (!resolvesToThisApp) {
             throw CheckoutError(
                 CheckoutError.Code.PLATFORM_ERROR,
-                "No activity resolves the '$scheme' scheme used by returnUrl. Set " +
+                "No activity in this app resolves the '$scheme' scheme used by returnUrl. Set " +
                     "manifestPlaceholders[\"dodoCallbackScheme\"] = \"$scheme\" in your app's " +
                     "build.gradle so BrowserRedirectActivity can catch the checkout return."
             )
