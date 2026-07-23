@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Build output
+lib/
+coverage/
+
+# Vendored at build time by scripts/sync-ios-core.sh
+ios/DodoCore/*.swift
+
+# Android build output (this package's own android/, not just example/)
+android/build/
+android/.gradle/
+android/local.properties
+
+# Logs / OS
+*.log
+.DS_Store
+
+# Example app
+example/node_modules/
+example/.expo/
+example/ios/Pods/
+example/android/.gradle/
