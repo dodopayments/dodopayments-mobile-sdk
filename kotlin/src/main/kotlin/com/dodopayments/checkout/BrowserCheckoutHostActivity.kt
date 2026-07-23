@@ -145,8 +145,13 @@ internal class BrowserCheckoutHostActivity : ComponentActivity() {
         val redirectUri = intent.getStringExtra(EXTRA_REDIRECT_URI) ?: return
         // The manifest intent-filter only constrains the scheme, so anything
         // registered on it could send a redirect here. Require the full
-        // scheme+host+path match before trusting it as the real return —
-        // otherwise ignore it and let the checkout keep running.
+        // scheme+host+path match before parsing it into a result — never trust
+        // an unmatched URL as the real return. We early-return without
+        // delivering here, but the forwarding intent has already brought this
+        // activity to the foreground, so the ensuing onResume (browserLaunched
+        // && pausedSinceLaunch && !delivered) resolves the checkout as
+        // CANCELLED. The security property holds either way: an untrusted URL
+        // is never parsed into a success/failure outcome.
         if (!matcher.matches(redirectUri)) return
         deliver(ResultParser.parse(redirectUri))
     }
