@@ -1,0 +1,70 @@
+buildscript {
+  repositories {
+    google()
+    mavenCentral()
+  }
+  dependencies {
+    // Only used when this module is built standalone. When consumed via
+    // autolinking the host app's AGP/Kotlin versions win.
+    classpath "com.android.tools.build:gradle:8.12.0"
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.20"
+  }
+}
+
+def isNewArchitectureEnabled() {
+  return rootProject.hasProperty("newArchEnabled") && rootProject.getProperty("newArchEnabled") == "true"
+}
+
+apply plugin: "com.android.library"
+apply plugin: "org.jetbrains.kotlin.android"
+
+// Runs codegen so NativeDodoCheckoutSpec (and emitOnCheckoutEvent) are generated
+// from package.json codegenConfig + src/NativeDodoCheckout.ts.
+if (isNewArchitectureEnabled()) {
+  apply plugin: "com.facebook.react"
+}
+
+def safeExtGet(prop, fallback) {
+  rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+}
+
+android {
+  namespace "com.dodopayments.reactnative"
+  compileSdkVersion safeExtGet("compileSdkVersion", 36)
+
+  defaultConfig {
+    minSdkVersion safeExtGet("minSdkVersion", 24)
+    targetSdkVersion safeExtGet("targetSdkVersion", 36)
+    buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
+  }
+
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
+  }
+  kotlinOptions {
+    jvmTarget = "17"
+  }
+}
+
+repositories {
+  google()
+  mavenCentral()
+  mavenLocal() // local dev: publish kotlin/ to mavenLocal
+}
+
+dependencies {
+  implementation "com.facebook.react:react-android"
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0"
+
+  // Checkout logic lives in the Android core SDK.
+  implementation "com.dodopayments:checkout-android:1.0.0"
+}
+
+if (isNewArchitectureEnabled()) {
+  react {
+    jsRootDir = file("../src/")
+    libraryName = "DodoCheckoutSpec"
+    codegenJavaPackageName = "com.dodopayments.reactnative"
+  }
+}
