@@ -1,8 +1,7 @@
 # Dodo Payments Checkout Android SDK
 
 Open Dodo Payments' hosted checkout in a Custom Tab (`androidx.browser.customtabs`)
-and get a clean result from one call. Shares the device browser's session,
-autofill, and wallets — Google Pay works as it does on the open web.
+and get a clean result from one call.
 
 ## Install
 

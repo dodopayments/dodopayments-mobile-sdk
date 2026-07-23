@@ -1,8 +1,7 @@
 # Dodo Payments Checkout iOS SDK
 
 Open Dodo Payments' hosted checkout in an in-app `SFSafariViewController` and
-get a clean result from one call. Shares Safari's session/autofill/wallets and
-supports Apple Pay, with no misleading "wants to Sign In" system dialog.
+get a clean result from one call.
 
 ## Install
 
