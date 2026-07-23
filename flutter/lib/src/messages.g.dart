@@ -120,7 +120,6 @@ enum NativeCheckoutStatus {
 /// to decide the checkout outcome.
 enum NativeEventType {
   opened,
-  navigation,
   returnReceived,
   closed,
 }
@@ -307,18 +306,13 @@ class NativeAbandonedSession {
 class NativeCheckoutEvent {
   NativeCheckoutEvent({
     required this.type,
-    this.host,
   });
 
   NativeEventType type;
 
-  /// Only set when [type] is `navigation`.
-  String? host;
-
   List<Object?> _toList() {
     return <Object?>[
       type,
-      host,
     ];
   }
 
@@ -329,7 +323,6 @@ class NativeCheckoutEvent {
     result as List<Object?>;
     return NativeCheckoutEvent(
       type: result[0]! as NativeEventType,
-      host: result[1] as String?,
     );
   }
 
@@ -342,7 +335,7 @@ class NativeCheckoutEvent {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(type, other.type) && _deepEquals(host, other.host);
+    return _deepEquals(type, other.type);
   }
 
   @override
@@ -351,7 +344,7 @@ class NativeCheckoutEvent {
 
   @override
   String toString() {
-    return 'NativeCheckoutEvent(type: $type, host: $host)';
+    return 'NativeCheckoutEvent(type: $type)';
   }
 }
 

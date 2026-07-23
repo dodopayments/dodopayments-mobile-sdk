@@ -38,10 +38,6 @@ enum CheckoutEventType {
   /// The checkout screen was presented.
   opened,
 
-  /// Debug trace: a top-level page transition occurred. Fires several times
-  /// during a checkout. Purely for debugging the flow.
-  navigation,
-
   /// A navigation matching `returnUrl` was intercepted.
   returnReceived,
 
@@ -51,12 +47,9 @@ enum CheckoutEventType {
 
 @immutable
 class CheckoutEvent {
-  const CheckoutEvent({required this.type, this.host});
+  const CheckoutEvent({required this.type});
 
   final CheckoutEventType type;
-
-  /// Only set when [type] is [CheckoutEventType.navigation].
-  final String? host;
 }
 
 /// The outcome of a checkout, derived entirely from the query string on the

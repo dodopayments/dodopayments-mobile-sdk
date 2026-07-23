@@ -100,11 +100,7 @@ public final class DodoCheckoutReactNativeImpl: NSObject {
   // MARK: - Mapping
 
   private func forward(_ event: CheckoutEvent) {
-    var body: [String: Any] = ["type": event.name]
-    if case .navigation(let host) = event {
-      body["host"] = host
-    }
-    eventEmitter?(body)
+    eventEmitter?(["type": event.name])
   }
 
   private static func serialize(_ result: CheckoutResult) -> [String: Any] {

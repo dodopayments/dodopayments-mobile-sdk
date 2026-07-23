@@ -21,8 +21,7 @@ export type NativeCheckoutResult = {
 };
 
 export type NativeCheckoutEvent = {
-  type: string; // "checkout.opened" | "checkout.navigation" | ...
-  host?: string;
+  type: string; // "checkout.opened" | "checkout.return_received" | "checkout.closed"
 };
 
 export type NativeAbandonedSession = {

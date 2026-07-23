@@ -79,29 +79,23 @@ void main() {
           NativeCheckoutEvent(type: NativeEventType.opened),
         );
         checkout.debugEmitEvent(
-          NativeCheckoutEvent(
-            type: NativeEventType.navigation,
-            host: 'checkout.dodopayments.com',
-          ),
+          NativeCheckoutEvent(type: NativeEventType.returnReceived),
         );
       };
 
       final List<CheckoutEventType> events = <CheckoutEventType>[];
-      final List<String?> hosts = <String?>[];
       await checkout.start(CheckoutParams(
         checkoutUrl: params.checkoutUrl,
         returnUrl: params.returnUrl,
         onEvent: (CheckoutEvent e) {
           events.add(e.type);
-          hosts.add(e.host);
         },
       ));
 
       expect(events, <CheckoutEventType>[
         CheckoutEventType.opened,
-        CheckoutEventType.navigation,
+        CheckoutEventType.returnReceived,
       ]);
-      expect(hosts, <String?>[null, 'checkout.dodopayments.com']);
     });
 
     test('events emitted after the call completes are not delivered',

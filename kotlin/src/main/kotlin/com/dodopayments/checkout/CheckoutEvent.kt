@@ -14,14 +14,6 @@ sealed class CheckoutEvent(
     /** The checkout screen was presented. */
     data object Opened : CheckoutEvent("checkout.opened")
 
-    /**
-     * Debug trace: a top-level (main-frame) page transition occurred, carrying
-     * the host only. Fires several times during a checkout as it hops through
-     * third-party pages (3DS, redirect PSPs). Purely for debugging the flow —
-     * do not drive any logic from it.
-     */
-    data class Navigation(val host: String) : CheckoutEvent("checkout.navigation")
-
     /** A navigation matching `returnUrl` was intercepted. */
     data object ReturnReceived : CheckoutEvent("checkout.return_received")
 

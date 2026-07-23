@@ -216,9 +216,8 @@ enum class NativeCheckoutStatus(val raw: Int) {
  */
 enum class NativeEventType(val raw: Int) {
   OPENED(0),
-  NAVIGATION(1),
-  RETURN_RECEIVED(2),
-  CLOSED(3);
+  RETURN_RECEIVED(1),
+  CLOSED(2);
 
   companion object {
     fun ofRaw(raw: Int): NativeEventType? {
@@ -385,22 +384,18 @@ data class NativeAbandonedSession (
 
 /** Generated class from Pigeon that represents data sent in messages. */
 data class NativeCheckoutEvent (
-  val type: NativeEventType,
-  /** Only set when [type] is `navigation`. */
-  val host: String? = null
+  val type: NativeEventType
 )
  {
   companion object {
     fun fromList(pigeonVar_list: List<Any?>): NativeCheckoutEvent {
       val type = pigeonVar_list[0] as NativeEventType
-      val host = pigeonVar_list[1] as String?
-      return NativeCheckoutEvent(type, host)
+      return NativeCheckoutEvent(type)
     }
   }
   fun toList(): List<Any?> {
     return listOf(
       type,
-      host,
     )
   }
   override fun equals(other: Any?): Boolean {
@@ -411,17 +406,16 @@ data class NativeCheckoutEvent (
       return true
     }
     val other = other as NativeCheckoutEvent
-    return MessagesPigeonUtils.deepEquals(this.type, other.type) && MessagesPigeonUtils.deepEquals(this.host, other.host)
+    return MessagesPigeonUtils.deepEquals(this.type, other.type)
   }
 
   override fun hashCode(): Int {
     var result = javaClass.hashCode()
     result = 31 * result + MessagesPigeonUtils.deepHash(this.type)
-    result = 31 * result + MessagesPigeonUtils.deepHash(this.host)
     return result
   }
   override fun toString(): String {
-    return "NativeCheckoutEvent(type=$type, host=$host)"
+    return "NativeCheckoutEvent(type=$type)"
   }
 }
 private open class MessagesPigeonCodec : StandardMessageCodec() {

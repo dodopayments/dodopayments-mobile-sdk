@@ -30,7 +30,6 @@ export interface CheckoutResult {
 
 export type CheckoutEvent =
   | { type: 'checkout.opened' }
-  | { type: 'checkout.navigation'; host?: string }
   | { type: 'checkout.return_received' }
   | { type: 'checkout.closed' };
 
@@ -119,9 +118,6 @@ export const DodoCheckout = {
     const subscription = onEvent
       ? subscribeToCheckoutEvents((event) => {
           switch (event.type) {
-            case 'checkout.navigation':
-              onEvent({ type: 'checkout.navigation', host: event.host });
-              break;
             case 'checkout.opened':
             case 'checkout.return_received':
             case 'checkout.closed':
