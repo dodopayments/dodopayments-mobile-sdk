@@ -1,5 +1,6 @@
 package com.dodopayments.checkout
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -23,6 +24,8 @@ internal class BrowserCheckoutHostActivity : ComponentActivity() {
     private var browserLaunched = false
     private var pausedSinceLaunch = false
     private lateinit var checkoutUrl: String
+    private lateinit var returnUrl: String
+    private lateinit var matcher: ReturnUrlMatcher
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,7 +34,9 @@ internal class BrowserCheckoutHostActivity : ComponentActivity() {
 
         val checkoutUrl = savedInstanceState?.getString(STATE_CHECKOUT_URL)
             ?: intent.getStringExtra(EXTRA_CHECKOUT_URL)
-        if (checkoutUrl.isNullOrEmpty()) {
+        val returnUrl = savedInstanceState?.getString(STATE_RETURN_URL)
+            ?: intent.getStringExtra(EXTRA_RETURN_URL)
+        if (checkoutUrl.isNullOrEmpty() || returnUrl.isNullOrEmpty()) {
             failWith(
                 CheckoutError(
                     CheckoutError.Code.PLATFORM_ERROR,
@@ -41,6 +46,8 @@ internal class BrowserCheckoutHostActivity : ComponentActivity() {
             return
         }
         this.checkoutUrl = checkoutUrl
+        this.returnUrl = returnUrl
+        this.matcher = ReturnUrlMatcher(returnUrl)
 
         if (savedInstanceState == null) {
             CheckoutCoordinator.emit(CheckoutEvent.Opened)
@@ -79,12 +86,44 @@ internal class BrowserCheckoutHostActivity : ComponentActivity() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        // isFinishing, not just "!isChangingConfigurations" — a config change
+        // AND an ordinary memory-reclaim destroy (backgrounded, OS frees this
+        // activity to recreate later from onSaveInstanceState, no process
+        // restart involved) both leave isFinishing false, and both expect
+        // this checkout to still be resumed later by a recreated instance.
+        // Only isFinishing means the system tore this down for good (e.g.
+        // the user swiped the task away from Recents) with no recreation
+        // coming — that's the only case safe to resolve here. Getting this
+        // wrong the other way is worse than the leak it fixes: completing
+        // CheckoutCoordinator.pendingResult (a process-wide singleton) on a
+        // reclaim-and-resume destroy would hand the suspend-style caller a
+        // premature CANCELLED before the real outcome arrives on the
+        // recreated instance, which then has nowhere left to deliver it.
+        // Deliberately NOT cleanUpSession()/deliver() here either — those
+        // clear the abandoned-session record, and this is exactly the
+        // scenario that record exists to survive; the merchant reconciles it
+        // via getAbandonedSession() on next launch.
+        if (!delivered && isFinishing) {
+            delivered = true
+            CheckoutCoordinator.guard.end()
+            CheckoutCoordinator.emit(CheckoutEvent.Closed)
+            val result = CheckoutResult(CheckoutStatus.CANCELLED)
+            setResult(Activity.RESULT_OK, ResultCodec.encode(result))
+            CheckoutCoordinator.pendingResult?.complete(result)
+        }
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBoolean(STATE_BROWSER_LAUNCHED, browserLaunched)
         outState.putBoolean(STATE_PAUSED_SINCE_LAUNCH, pausedSinceLaunch)
         if (::checkoutUrl.isInitialized) {
             outState.putString(STATE_CHECKOUT_URL, checkoutUrl)
+        }
+        if (::returnUrl.isInitialized) {
+            outState.putString(STATE_RETURN_URL, returnUrl)
         }
     }
 
@@ -104,6 +143,11 @@ internal class BrowserCheckoutHostActivity : ComponentActivity() {
 
     private fun handleRedirectIfPresent(intent: Intent) {
         val redirectUri = intent.getStringExtra(EXTRA_REDIRECT_URI) ?: return
+        // The manifest intent-filter only constrains the scheme, so anything
+        // registered on it could send a redirect here. Require the full
+        // scheme+host+path match before trusting it as the real return —
+        // otherwise ignore it and let the checkout keep running.
+        if (!matcher.matches(redirectUri)) return
         deliver(ResultParser.parse(redirectUri))
     }
 
@@ -120,6 +164,10 @@ internal class BrowserCheckoutHostActivity : ComponentActivity() {
         // deferred, since completion can resume the awaiting caller
         // synchronously and its `finally` nulls `onEvent`.
         CheckoutCoordinator.emit(CheckoutEvent.Closed)
+        // Carries the result back to the launcher-style contract path via
+        // onActivityResult; the suspend-style path below ignores this and
+        // uses the in-memory deferred instead.
+        setResult(Activity.RESULT_OK, ResultCodec.encode(result))
         CheckoutCoordinator.pendingResult?.complete(result)
         finish()
     }
@@ -129,6 +177,7 @@ internal class BrowserCheckoutHostActivity : ComponentActivity() {
         delivered = true
         cleanUpSession()
         CheckoutCoordinator.emit(CheckoutEvent.Closed)
+        setResult(Activity.RESULT_OK, ResultCodec.encodeError(error))
         CheckoutCoordinator.pendingResult?.completeExceptionally(error)
         finish()
     }
@@ -140,14 +189,17 @@ internal class BrowserCheckoutHostActivity : ComponentActivity() {
 
     companion object {
         private const val EXTRA_CHECKOUT_URL = "com.dodopayments.checkout.extra.browserCheckoutUrl"
+        private const val EXTRA_RETURN_URL = "com.dodopayments.checkout.extra.browserReturnUrl"
         internal const val EXTRA_REDIRECT_URI = "com.dodopayments.checkout.extra.browserRedirectUri"
         private const val STATE_BROWSER_LAUNCHED = "com.dodopayments.checkout.state.browserLaunched"
         private const val STATE_PAUSED_SINCE_LAUNCH = "com.dodopayments.checkout.state.pausedSinceLaunch"
         private const val STATE_CHECKOUT_URL = "com.dodopayments.checkout.state.browserCheckoutUrl"
+        private const val STATE_RETURN_URL = "com.dodopayments.checkout.state.browserReturnUrl"
 
         fun newIntent(context: Context, params: CheckoutParams): Intent =
             Intent(context, BrowserCheckoutHostActivity::class.java).apply {
                 putExtra(EXTRA_CHECKOUT_URL, params.checkoutUrl)
+                putExtra(EXTRA_RETURN_URL, params.returnUrl)
             }
 
         /** Built by [BrowserRedirectActivity] to forward the caught redirect. */
