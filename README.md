@@ -32,8 +32,8 @@ understand the others:
 - The result is a **UI hint, not proof of payment**. None of these SDKs call
   the Dodo API or hold an API key; grant access from your backend via webhook
   or by retrieving the payment with your secret key.
-- An optional `onEvent` callback for logging (`opened` / `navigation` /
-  `return_received` / `closed`) — never authoritative.
+- An optional `onEvent` callback for logging (`opened` / `return_received` /
+  `closed`) — never authoritative.
 - A `CheckoutError` / `CheckoutException` for misuse or platform failure only
   (`INVALID_CHECKOUT_URL`, `INVALID_RETURN_URL`, `ALREADY_IN_PROGRESS`,
   `PLATFORM_ERROR`). A user cancelling or a declined payment is always a
