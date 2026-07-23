@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- BrowserRedirectActivity is deliberately declared WITHOUT an
+         intent-filter here: its scheme is chosen per merchant, and a manifest
+         placeholder with no default would fail the manifest merge for every
+         consumer. Instead, the merchant redeclares this same activity (by
+         fully-qualified name) with their own intent-filter in their own app
+         manifest; see BrowserRedirectActivity's kdoc for the exact block to
+         add. That one manifest block is the entire setup cost. -->
+    <application>
+        <activity
+            android:name=".BrowserCheckoutHostActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|uiMode" />
+        <activity
+            android:name=".BrowserRedirectActivity"
+            android:exported="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+    </application>
+</manifest>
