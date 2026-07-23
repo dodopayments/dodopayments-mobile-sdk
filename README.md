@@ -42,7 +42,3 @@ understand the others:
 
 See each SDK's README for the exact API and platform setup.
 
-## Demo apps
-
-Runnable reference integrations for all four platforms live under
-[`demo-apps/`](demo-apps/).
