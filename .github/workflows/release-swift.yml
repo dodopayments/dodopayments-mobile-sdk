@@ -1,0 +1,62 @@
+name: Release Swift
+
+# Triggered by pushing a plain semver tag (v1.0.0) — SPM resolves packages by
+# git tag on the repo the manifest lives in, and requires Package.swift at
+# that repo's root, so the swift/ subtree is mirrored out to a dedicated repo
+# (dodopayments-checkout-ios) rather than published from this monorepo.
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout monorepo at the tag
+        uses: actions/checkout@v4
+        with:
+          path: mobile-sdk
+
+      - name: Checkout the satellite repo
+        uses: actions/checkout@v4
+        with:
+          repository: dodopayments/dodopayments-checkout-ios
+          token: ${{ secrets.SWIFT_MIRROR_TOKEN }}
+          path: dodopayments-checkout-ios
+
+      - name: Verify the core builds and tests pass before mirroring
+        working-directory: mobile-sdk/swift
+        run: |
+          swift build
+          swift test
+
+      - name: Sync swift/ into the satellite repo, preserving its own git history
+        # Excludes match swift/.gitignore — swift build/test (above) regenerates
+        # .build/ and .swiftpm/ right before this step, so without these
+        # excludes rsync would copy those build artifacts into the mirror.
+        run: |
+          rsync -a --delete \
+            --exclude='.git' \
+            --exclude='.build/' \
+            --exclude='.swiftpm/' \
+            --exclude='Package.resolved' \
+            --exclude='.DS_Store' \
+            mobile-sdk/swift/ dodopayments-checkout-ios/
+
+      - name: Commit and tag the mirror
+        working-directory: dodopayments-checkout-ios
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          git config user.name "dodopayments-bot"
+          git config user.email "bot@dodopayments.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to mirror for $TAG."
+          else
+            git commit -m "Sync from dodopayments-mobile-sdk@${GITHUB_SHA}"
+          fi
+          git tag -f "$TAG"
+          git push origin main
+          git push origin "$TAG" --force

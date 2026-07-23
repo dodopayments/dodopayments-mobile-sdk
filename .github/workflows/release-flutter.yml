@@ -1,0 +1,42 @@
+name: Release Flutter
+
+# Triggered by pushing a tag like flutter-v1.0.0. Vendors the Swift core
+# (see scripts/sync-ios-core.sh), verifies, then publishes to pub.dev via
+# GitHub Actions OIDC — no long-lived token needed, but this repo/environment
+# must be verified once in the package's pub.dev admin settings first.
+on:
+  push:
+    tags:
+      - "flutter-v*"
+
+# Required by pub.dev's OIDC-based automated publishing.
+permissions:
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flutter
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.44.0"
+
+      - name: Vendor the Swift core for the iOS pod
+        run: ./scripts/sync-ios-core.sh
+
+      - run: flutter pub get
+      - run: flutter test
+
+      - name: Verify the package actually includes the vendored core
+        run: |
+          dart pub publish --dry-run 2>&1 | grep -q "DodoCheckoutCore/DodoCheckout.swift" || {
+            echo "ios/DodoCheckoutCore is missing from the package — aborting before publish." >&2
+            exit 1
+          }
+
+      - run: dart pub publish --force

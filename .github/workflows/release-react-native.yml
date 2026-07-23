@@ -1,0 +1,42 @@
+name: Release React Native
+
+# Triggered by pushing a tag like react-native-v1.0.0. Vendors the Swift core
+# (CocoaPods needs it as source, see scripts/sync-ios-core.sh), verifies, then
+# publishes to npm.
+on:
+  push:
+    tags:
+      - "react-native-v*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: react-native
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: "https://registry.npmjs.org"
+
+      - run: npm ci
+
+      - name: Vendor the Swift core for the iOS pod
+        run: ./scripts/sync-ios-core.sh
+
+      - run: npm run typecheck
+      - run: npm test
+
+      - name: Verify the published tarball actually contains the vendored core
+        run: |
+          npm pack --dry-run 2>&1 | grep -q "ios/DodoCore/DodoCheckout.swift" || {
+            echo "ios/DodoCore is missing from the pack — aborting before publish." >&2
+            exit 1
+          }
+
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
