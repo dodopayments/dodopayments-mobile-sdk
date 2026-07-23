@@ -46,11 +46,12 @@ extension DodoCheckout {
 
         let session = SafariCheckoutSession(returnUrl: returnUrl, onEvent: onEvent)
         activeBrowserSession = session
-        let result = await session.start(checkoutUrl: checkoutUrl, presenter: presenter)
-        activeBrowserSession = nil
-        abandonedStore.clear()
-        inProgressGuard.end()
-        return result
+        defer {
+            activeBrowserSession = nil
+            abandonedStore.clear()
+            inProgressGuard.end()
+        }
+        return try await session.start(checkoutUrl: checkoutUrl, presenter: presenter)
     }
 
     /// Walks from the key window's root down through presented controllers to

@@ -14,24 +14,62 @@ final class SafariCheckoutSession: NSObject {
     private let onEvent: (@Sendable (CheckoutEvent) -> Void)?
 
     private weak var safariViewController: SFSafariViewController?
-    private var continuation: CheckedContinuation<CheckoutResult, Never>?
+    private var continuation: CheckedContinuation<CheckoutResult, Error>?
     private var resumed = false
+    private var didConfirmPresentation = false
 
     init(returnUrl: URL, onEvent: (@Sendable (CheckoutEvent) -> Void)?) {
         self.matcher = ReturnUrlMatcher(returnUrl: returnUrl)
         self.onEvent = onEvent
     }
 
-    func start(checkoutUrl: URL, presenter: UIViewController) async -> CheckoutResult {
+    func start(checkoutUrl: URL, presenter: UIViewController) async throws -> CheckoutResult {
         onEvent?(.opened)
-        return await withTaskCancellationHandler {
-            await withCheckedContinuation { continuation in
+        // `present` has no failure signal beyond its completion handler
+        // simply never running (e.g. the presenter is already mid-transition
+        // presenting something else) — check upfront rather than attempt a
+        // presentation UIKit is going to silently drop.
+        guard presenter.presentedViewController == nil else {
+            throw CheckoutError(
+                code: .platformError,
+                message: "Another view controller is already presented; cannot show the checkout."
+            )
+        }
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
                 self.continuation = continuation
                 let safari = SFSafariViewController(url: checkoutUrl)
                 safari.delegate = self
                 safari.modalPresentationStyle = .pageSheet
                 safariViewController = safari
-                presenter.present(safari, animated: true)
+                presenter.present(safari, animated: true) { [weak self] in
+                    self?.didConfirmPresentation = true
+                }
+                // Defense in depth: if presentation still silently fails to
+                // complete despite the guard above, don't hang forever. Only
+                // counts *foreground* time — if the user backgrounds the app
+                // mid-presentation (e.g. to grab a 2FA code), the sheet's
+                // animation pauses too, so a plain wall-clock timeout would
+                // misfire on a presentation that's actually still going to
+                // complete once they return.
+                Task { @MainActor [weak self] in
+                    let tick = 0.5
+                    var foregroundSecondsWaited = 0.0
+                    while foregroundSecondsWaited < 5.0 {
+                        try? await Task.sleep(nanoseconds: UInt64(tick * 1_000_000_000))
+                        guard let self, !self.didConfirmPresentation else { return }
+                        if UIApplication.shared.applicationState == .active {
+                            foregroundSecondsWaited += tick
+                        }
+                    }
+                    guard let self, !self.didConfirmPresentation else { return }
+                    self.fail(
+                        with: CheckoutError(
+                            code: .platformError,
+                            message: "The checkout screen never finished presenting."
+                        )
+                    )
+                }
             }
         } onCancel: {
             Task { @MainActor [weak self] in
@@ -62,6 +100,15 @@ final class SafariCheckoutSession: NSObject {
         safari.dismiss(animated: true) {
             continuation?.resume(returning: result)
         }
+    }
+
+    private func fail(with error: CheckoutError) {
+        guard !resumed else { return }
+        resumed = true
+        onEvent?(.closed)
+        let continuation = self.continuation
+        self.continuation = nil
+        continuation?.resume(throwing: error)
     }
 }
 
