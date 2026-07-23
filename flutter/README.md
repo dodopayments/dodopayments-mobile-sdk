@@ -85,12 +85,24 @@ Grant access on your backend from the webhook (`payment.succeeded` /
 `subscription.active`) or by retrieving the payment with your secret key.
 `result.raw` carries every query parameter verbatim.
 
+## Verify the payment
+
+Confirm every payment from your backend, not from the mobile result:
+
+- **Webhook**: Dodo Payments calls your backend when a payment
+  succeeds or a subscription activates. Check the
+  [Webhooks guide](https://docs.dodopayments.com/developer-resources/webhooks).
+- **Verification API**: look up `paymentId` with your secret key via
+  [Get Payment Detail](https://docs.dodopayments.com/api-reference/payments/get-payments-1).
+
 ## Abandoned sessions
 
 If the app is killed mid-checkout, recover the interrupted session on next
 launch and reconcile it server-side:
 
 ```dart
+import 'package:dodopayments_checkout/dodopayments_checkout.dart';
+
 final abandoned = await DodoCheckout.instance.getAbandonedSession();
 if (abandoned != null) {
   // reconcile abandoned.sessionId with your backend, then:

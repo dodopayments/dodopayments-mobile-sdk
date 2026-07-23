@@ -71,12 +71,24 @@ switch (result.status) {
 This SDK never calls the Dodo API and holds no API key. Grant access on your
 backend from the webhook (`payment.succeeded` / `subscription.active`).
 
+## Verify the payment
+
+Confirm every payment from your backend, not from the mobile result:
+
+- **Webhook**: Dodo Payments calls your backend when a payment
+  succeeds or a subscription activates. Check the
+  [Webhooks guide](https://docs.dodopayments.com/developer-resources/webhooks).
+- **Verification API**: look up `paymentId` with your secret key via
+  [Get Payment Detail](https://docs.dodopayments.com/api-reference/payments/get-payments-1).
+
 ## Abandoned sessions
 
 If the app (or the JS bundle) is killed mid-checkout the promise is lost, but
 the native layer keeps the session. Recover it on next mount:
 
 ```ts
+import { DodoCheckout } from '@dodopayments/react-native-checkout';
+
 const abandoned = await DodoCheckout.getAbandonedSession();
 if (abandoned) {
   // reconcile abandoned.sessionId server-side, then:
