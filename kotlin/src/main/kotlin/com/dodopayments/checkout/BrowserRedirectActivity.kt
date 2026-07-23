@@ -8,28 +8,25 @@ import android.os.Bundle
  * forwards it to [BrowserCheckoutHostActivity], then finishes itself so it
  * never lingers in the back stack.
  *
- * This library's own manifest declares this activity with **no**
- * intent-filter — the redirect scheme is chosen per merchant, and there is no
- * safe library-wide default. Redeclare this same activity by its
- * fully-qualified name in your own app's `AndroidManifest.xml` with your
- * scheme's intent-filter; AGP's manifest merger unions it with the library's
- * declaration:
+ * The library's own manifest already declares this activity's intent-filter,
+ * using `${dodoCallbackScheme}` as the scheme. Set that placeholder in your
+ * own app's `build.gradle`:
  *
- * ```xml
- * <activity
- *     android:name="com.dodopayments.checkout.BrowserRedirectActivity"
- *     android:exported="true">
- *     <intent-filter>
- *         <action android:name="android.intent.action.VIEW" />
- *         <category android:name="android.intent.category.DEFAULT" />
- *         <category android:name="android.intent.category.BROWSABLE" />
- *         <data android:scheme="myapp" />
- *     </intent-filter>
- * </activity>
+ * ```kotlin
+ * android {
+ *     defaultConfig {
+ *         manifestPlaceholders["dodoCallbackScheme"] = "myapp"
+ *     }
+ * }
  * ```
  *
- * That one block is the entire merchant setup cost. `myapp` here must match
- * the scheme used in `CheckoutParams.returnUrl` (e.g. `myapp://checkout/return`).
+ * That one Gradle property is the entire merchant setup cost — no manifest
+ * XML to hand-copy. `myapp` here must match the scheme used in
+ * `CheckoutParams.returnUrl` (e.g. `myapp://checkout/return`). If it's ever
+ * left unset, the build fails immediately with an unresolved-placeholder
+ * error rather than silently failing at checkout time; if it's set but
+ * doesn't match `returnUrl`'s scheme, [DodoCheckout.start] throws a clear
+ * `PLATFORM_ERROR` before presenting anything (see `RedirectResolution`).
  */
 internal class BrowserRedirectActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {

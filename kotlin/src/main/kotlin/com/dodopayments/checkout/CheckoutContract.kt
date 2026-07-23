@@ -19,6 +19,7 @@ internal class CheckoutContract : ActivityResultContract<CheckoutParams, Checkou
     override fun createIntent(context: Context, input: CheckoutParams): Intent {
         UrlValidator.validateCheckoutUrl(input.checkoutUrl)
         UrlValidator.validateReturnUrl(input.returnUrl)
+        RedirectResolution.ensureResolvable(context, input.returnUrl)
         CheckoutCoordinator.guard.begin()
         AbandonedSessionStore(SharedPreferencesKeyValueStore(context)).record(input.checkoutUrl)
         return BrowserCheckoutHostActivity.newIntent(context, input)
