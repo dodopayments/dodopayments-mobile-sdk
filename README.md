@@ -1,14 +1,51 @@
 # Dodo Payments Mobile SDK
 
+<p align="left">
+  <a href="https://discord.gg/bYqAp4ayYh">
+    <img src="https://img.shields.io/discord/1305511580854779984?label=Join%20Discord&logo=discord" alt="Join Discord" />
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" alt="License: Apache 2.0" />
+  </a>
+</p>
+
 Native checkout SDKs for Dodo Payments' hosted checkout, for iOS, Android,
 React Native, and Flutter.
 
-Each SDK opens the checkout in a system browser surface — `SFSafariViewController`
-on iOS, a Custom Tab (`androidx.browser.customtabs`) on Android — instead of an
-in-app WebView. This means the checkout shares the device browser's existing
-session, saved cards, autofill, and wallets (Apple Pay, Google Pay) exactly as
-it would on the open web, and returns a clean result to your app from one
-call.
+Each SDK opens the checkout in a system browser surface. `SFSafariViewController`
+on iOS, a Custom Tab (`androidx.browser.customtabs`) on Android.
+
+## Install
+
+**Swift (iOS)**
+
+```swift
+// Package.swift
+.package(url: "https://github.com/dodopayments/dodopayments-checkout-ios", from: "1.0.0")
+```
+
+**Kotlin (Android)**
+
+```kotlin
+// build.gradle.kts
+implementation("com.dodopayments:checkout-android:1.0.0")
+```
+
+**React Native**
+
+```sh
+npm i @dodopayments/react-native-checkout
+```
+
+**Flutter**
+
+```yaml
+# pubspec.yaml
+dependencies:
+  dodopayments_checkout: ^1.0.0
+```
+
+Check each SDK's README (linked below) for setup and usage.
 
 ## SDKs
 
@@ -41,4 +78,18 @@ understand the others:
 - Abandoned-session recovery, for when the app is killed mid-checkout.
 
 See each SDK's README for the exact API and platform setup.
+
+## Project structure
+
+```
+dodopayments-mobile-sdk/
+├── swift/          # iOS core (Swift Package). Mirrored to a satellite repo on release.
+├── kotlin/         # Android core (Kotlin/Gradle). Published to Maven Central.
+├── react-native/   # Turbo Module wrapper over the iOS/Android cores. Published to npm.
+└── flutter/        # Pigeon wrapper over the iOS/Android cores. Published to pub.dev.
+```
+
+## License
+
+Apache License 2.0, see [LICENSE](LICENSE) for details.
 
