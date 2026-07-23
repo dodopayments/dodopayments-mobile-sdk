@@ -1,0 +1,28 @@
+# A .pubignore in a directory fully replaces that directory's .gitignore for
+# packaging purposes (unlike npm, which ignores .npmignore/.gitignore
+# entirely once "files" is set in package.json — verified empirically for
+# both). This mirrors flutter/.gitignore, minus the ios/DodoCheckoutCore
+# exclusion, so the Swift core vendored at release time by
+# scripts/sync-ios-core.sh actually ships, without permanently un-ignoring
+# it in git.
+
+.dart_tool/
+.packages
+build/
+pubspec.lock
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Example platform scaffolding is generated (see example/pubspec.yaml).
+example/android/
+example/ios/
+example/.dart_tool/
+example/build/
+
+# iOS
+ios/.symlinks/
+Pods/
+
+# Android
+android/.gradle/
+android/local.properties

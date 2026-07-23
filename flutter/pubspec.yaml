@@ -2,7 +2,7 @@ name: dodopayments_checkout
 description: >-
   Open Dodo Payments' hosted checkout in a system browser tab and get a clean
   result from one call.
-version: 0.1.0
+version: 1.0.0
 homepage: https://github.com/dodopayments/dodopayments-checkout-flutter
 repository: https://github.com/dodopayments/dodopayments-checkout-flutter
 
@@ -14,6 +14,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # Used by the Pigeon-generated lib/src/messages.g.dart.
+  meta: ^1.16.0
 
 dev_dependencies:
   flutter_test:
