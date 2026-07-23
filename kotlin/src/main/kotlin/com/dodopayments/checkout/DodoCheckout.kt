@@ -51,6 +51,7 @@ object DodoCheckout {
         // Validate before touching any UI.
         UrlValidator.validateCheckoutUrl(params.checkoutUrl)
         UrlValidator.validateReturnUrl(params.returnUrl)
+        RedirectResolution.ensureResolvable(activity, params.returnUrl)
 
         CheckoutCoordinator.guard.begin()
 

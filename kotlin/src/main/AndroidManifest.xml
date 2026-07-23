@@ -1,21 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- BrowserRedirectActivity is deliberately declared WITHOUT an
-         intent-filter here: its scheme is chosen per merchant, and a manifest
-         placeholder with no default would fail the manifest merge for every
-         consumer. Instead, the merchant redeclares this same activity (by
-         fully-qualified name) with their own intent-filter in their own app
-         manifest; see BrowserRedirectActivity's kdoc for the exact block to
-         add. That one manifest block is the entire setup cost. -->
+    <!-- Required for CustomTabsIntent to reliably resolve a browser package
+         under API 30+ package-visibility rules. Ships from the library so
+         merchants don't need to add it themselves. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https" />
+        </intent>
+    </queries>
+
     <application>
         <activity
             android:name=".BrowserCheckoutHostActivity"
             android:exported="false"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|uiMode" />
+
+        <!-- The intent-filter's scheme comes from the merchant's own
+             manifestPlaceholders["dodoCallbackScheme"] (set in their app's
+             build.gradle) — see BrowserRedirectActivity's kdoc. This is the
+             library's entire setup cost: one Gradle property, no manifest XML
+             to hand-copy. -->
         <activity
             android:name=".BrowserRedirectActivity"
             android:exported="true"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="${dodoCallbackScheme}" />
+            </intent-filter>
+        </activity>
     </application>
 </manifest>
