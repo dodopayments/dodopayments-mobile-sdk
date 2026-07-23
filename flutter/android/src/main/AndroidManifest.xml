@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Deliberately empty: no permissions, no URL schemes, no intent
+         filters declared here. The merchant redeclares the SDK's redirect
+         activity with their own callback scheme in their own app's
+         AndroidManifest.xml — see the Android SDK's docs for the exact
+         block to add. -->
+</manifest>
