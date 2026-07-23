@@ -16,15 +16,15 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'dodopayments_checkout'
-  s.version          = '0.1.0'
-  s.summary          = "Dodo Payments hosted checkout in an in-app WebView."
+  s.version          = '1.0.0'
+  s.summary          = "Dodo Payments hosted checkout in a system browser tab."
   s.description      = <<-DESC
 Thin Flutter bridge to the Dodo Payments iOS checkout core. Opens the hosted
-checkout in a WKWebView, intercepts the return_url navigation, and returns a
-typed result. Zero networking; holds no API key.
+checkout in an SFSafariViewController, catches the return_url redirect, and
+returns a typed result. Zero networking; holds no API key.
                        DESC
   s.homepage         = 'https://github.com/dodopayments/dodopayments-checkout-flutter'
-  s.license          = { :type => 'MIT', :file => '../LICENSE' }
+  s.license          = 'MIT'
   s.author           = { 'Dodo Payments' => 'support@dodopayments.com' }
   s.source           = { :path => '.' }
 

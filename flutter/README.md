@@ -13,7 +13,7 @@ maps the result back.
 
 ```yaml
 dependencies:
-  dodopayments_checkout: ^0.1.0
+  dodopayments_checkout: ^1.0.0
 ```
 
 Requirements: Flutter 3.44+ / Dart 3.12+, iOS 16+, Android minSdk 23.
