@@ -53,6 +53,17 @@ to a dedicated repo on every release.
 4. Copy the `LICENSE` file into the satellite repo's root too — this monorepo's
    root `LICENSE` doesn't automatically reach it.
 
+### Bump-dependents PR bot
+
+`bump-dependents.yml` opens its PR using a PAT, not the default `GITHUB_TOKEN`
+— PRs opened with `GITHUB_TOKEN` don't trigger other workflows (GitHub's
+anti-recursion behavior), so `ci.yml` would never run on these bot PRs
+otherwise.
+
+1. Generate a GitHub PAT (fine-grained, scoped to this repo, Contents: write,
+   Pull requests: write).
+2. Add it as the `BUMP_DEPENDENTS_TOKEN` secret.
+
 ## Releasing a package
 
 Bump the version, merge to `main`, then push the matching tag. Each package's
@@ -69,19 +80,18 @@ A version bump PR should also update that package's `CHANGELOG.md`.
 
 ## Cross-package dependency bumps
 
-React Native and Flutter both depend on the other two cores:
+React Native and Flutter both pin a specific Kotlin version as a Maven
+coordinate (`com.dodopayments:checkout-android:X.Y.Z`) in their respective
+`android/build.gradle`. Neither picks up a new Kotlin release automatically —
+after a Kotlin release succeeds, `.github/workflows/bump-dependents.yml`
+opens a PR bumping that pin in both React Native and Flutter. It does **not**
+auto-merge — review it, let CI go green, then merge and release those
+packages if you want the update to reach their consumers.
 
-- A specific Kotlin version, pinned as a Maven coordinate
-  (`com.dodopayments:checkout-android:X.Y.Z`) in their respective
-  `android/build.gradle`.
-- A vendored copy of the Swift source (via `scripts/sync-ios-core.sh` in each
-  package), not a live dependency.
-
-Neither picks up a new Kotlin or Swift release automatically. After either of
-those releases succeeds, `.github/workflows/bump-dependents.yml` opens a PR
-bumping the pin (or re-vendoring the Swift source) in both React Native and
-Flutter. It does **not** auto-merge — review it, let CI go green, then merge
-and release those packages if you want the update to reach their consumers.
+Swift doesn't need this: React Native and Flutter each re-vendor the Swift
+core fresh from `swift/` in their own release workflows (`scripts/sync-ios-core.sh`),
+not from a pinned or committed copy — the next time either releases, it
+automatically picks up whatever `swift/` currently contains.
 
 ## Verifying before you tag
 

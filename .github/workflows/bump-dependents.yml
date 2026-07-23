@@ -1,14 +1,17 @@
 name: Bump dependents
 
-# After a Kotlin or Swift core release, React Native and Flutter both pin a
-# specific version of that core (a Maven coordinate for Kotlin, a vendored
-# source copy via scripts/sync-ios-core.sh for Swift). Neither picks up the
-# new release automatically, so this opens a review-gated PR that does the
-# bump — it never auto-merges, since a cross-package dependency bump deserves
-# a human glance and a green CI run first.
+# After a Kotlin core release, React Native and Flutter both pin a specific
+# version of it as a Maven coordinate. Neither picks up the new release
+# automatically, so this opens a review-gated PR that bumps the pin — it
+# never auto-merges, since a cross-package dependency bump deserves a human
+# glance and a green CI run first.
+#
+# (Swift releases don't need this: RN/Flutter re-vendor the Swift core fresh
+# from swift/ in their own release workflows, not from a pinned/committed
+# copy, so there's nothing to bump here for a Swift release.)
 on:
   workflow_run:
-    workflows: ["Release Kotlin", "Release Swift"]
+    workflows: ["Release Kotlin"]
     types: [completed]
 
 # peter-evans/create-pull-request needs both, regardless of the repo's default
@@ -27,7 +30,6 @@ jobs:
           ref: main
 
       - name: Bump the Kotlin core version pin in RN and Flutter
-        if: github.event.workflow_run.name == 'Release Kotlin'
         run: |
           TAG="${{ github.event.workflow_run.head_branch }}"
           VERSION="${TAG#kotlin-v}"
@@ -35,17 +37,13 @@ jobs:
             react-native/android/build.gradle flutter/android/build.gradle
           echo "BUMP_SUMMARY=Bump com.dodopayments:checkout-android to ${VERSION} in react-native and flutter" >> "$GITHUB_ENV"
 
-      - name: Re-vendor the Swift core in RN and Flutter
-        if: github.event.workflow_run.name == 'Release Swift'
-        run: |
-          react-native/scripts/sync-ios-core.sh
-          flutter/scripts/sync-ios-core.sh
-          echo "BUMP_SUMMARY=Re-vendor the Swift core (${{ github.event.workflow_run.head_branch }}) into react-native and flutter" >> "$GITHUB_ENV"
-
       - name: Open a PR with the bump
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # A PAT, not secrets.GITHUB_TOKEN — PRs opened with GITHUB_TOKEN
+          # don't trigger other workflows (GitHub's anti-recursion behavior),
+          # so ci.yml would never run on this PR otherwise.
+          token: ${{ secrets.BUMP_DEPENDENTS_TOKEN }}
           branch: bot/bump-dependents-${{ github.event.workflow_run.head_branch }}
           title: "${{ env.BUMP_SUMMARY }}"
           commit-message: "${{ env.BUMP_SUMMARY }}"
