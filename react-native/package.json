@@ -15,15 +15,21 @@
     "app.plugin.js",
     "DodoCheckoutReactNative.podspec",
     "!**/__tests__",
-    "!**/.*"
+    "!**/.*",
+    "!android/build",
+    "!android/.gradle",
+    "!android/local.properties"
   ],
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "jest"
   },
-  "keywords": ["dodopayments", "checkout", "payments", "react-native", "webview"],
+  "keywords": ["dodopayments", "checkout", "payments", "react-native"],
   "license": "MIT",
   "homepage": "https://github.com/dodopayments/dodopayments-checkout-react-native",
+  "publishConfig": {
+    "access": "public"
+  },
   "codegenConfig": {
     "name": "DodoCheckoutSpec",
     "type": "modules",
