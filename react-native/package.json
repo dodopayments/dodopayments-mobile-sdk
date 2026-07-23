@@ -25,7 +25,7 @@
     "test": "jest"
   },
   "keywords": ["dodopayments", "checkout", "payments", "react-native"],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "homepage": "https://github.com/dodopayments/dodopayments-checkout-react-native",
   "publishConfig": {
     "access": "public"

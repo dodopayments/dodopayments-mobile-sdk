@@ -24,7 +24,7 @@ checkout in an SFSafariViewController, catches the return_url redirect, and
 returns a typed result. Zero networking; holds no API key.
                        DESC
   s.homepage         = 'https://github.com/dodopayments/dodopayments-checkout-flutter'
-  s.license          = 'MIT'
+  s.license          = 'Apache-2.0'
   s.author           = { 'Dodo Payments' => 'support@dodopayments.com' }
   s.source           = { :path => '.' }
 
