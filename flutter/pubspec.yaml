@@ -1,8 +1,7 @@
 name: dodopayments_checkout
 description: >-
-  Open Dodo Payments' hosted checkout in an in-app WebView and get a clean
-  result from one call. Thin Flutter wrapper over the native iOS and Android
-  Dodo checkout SDKs. Zero networking, no API keys, no deep-link wiring.
+  Open Dodo Payments' hosted checkout in a system browser tab and get a clean
+  result from one call.
 version: 0.1.0
 homepage: https://github.com/dodopayments/dodopayments-checkout-flutter
 repository: https://github.com/dodopayments/dodopayments-checkout-flutter
