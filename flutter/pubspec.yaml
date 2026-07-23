@@ -1,0 +1,37 @@
+name: dodopayments_checkout
+description: >-
+  Open Dodo Payments' hosted checkout in an in-app WebView and get a clean
+  result from one call. Thin Flutter wrapper over the native iOS and Android
+  Dodo checkout SDKs. Zero networking, no API keys, no deep-link wiring.
+version: 0.1.0
+homepage: https://github.com/dodopayments/dodopayments-checkout-flutter
+repository: https://github.com/dodopayments/dodopayments-checkout-flutter
+
+environment:
+  # Flutter 3.44 / Dart 3.12 are current stable (2026-07).
+  sdk: ">=3.12.0 <4.0.0"
+  flutter: ">=3.44.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  # Pigeon generates lib/src/messages.g.dart, android/.../Messages.g.kt and
+  # ios/Classes/Messages.g.swift from pigeons/messages.dart. Regenerate with:
+  #   dart run pigeon --input pigeons/messages.dart
+  # The three Messages.* files are checked in (may be hand-maintained in lockstep
+  # with this schema). All three MUST agree on field order and custom type-ids.
+  pigeon: ^27.3.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.dodopayments.checkout_flutter
+        pluginClass: DodoCheckoutFlutterPlugin
+      ios:
+        pluginClass: DodoCheckoutFlutterPlugin

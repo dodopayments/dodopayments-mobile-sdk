@@ -1,0 +1,23 @@
+.dart_tool/
+.packages
+build/
+pubspec.lock
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Example platform scaffolding is generated (see example/pubspec.yaml).
+example/android/
+example/ios/
+example/.dart_tool/
+example/build/
+
+# iOS
+ios/.symlinks/
+Pods/
+
+# Vendored at build time by scripts/sync-ios-core.sh
+ios/DodoCheckoutCore/*.swift
+
+# Android
+android/.gradle/
+android/local.properties

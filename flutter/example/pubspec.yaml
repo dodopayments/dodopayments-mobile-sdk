@@ -1,0 +1,33 @@
+# Example app for dodopayments_checkout.
+#
+# The platform folders (android/, ios/) are standard Flutter scaffolding and
+# are not checked in by hand — generate them once with:
+#   cd example && flutter create --platforms=android,ios --org com.dodopayments .
+# then `flutter run`. The WebView surface needs no extra platform setup, but
+# the browser surface (CheckoutSurface.browser) does — see main.dart's
+# `browserCallbackScheme` doc comment for the Info.plist/AndroidManifest
+# blocks to add after regenerating these folders.
+name: dodopayments_checkout_example
+description: Demonstrates the dodopayments_checkout plugin.
+publish_to: "none"
+version: 0.1.0
+
+environment:
+  sdk: ">=3.12.0 <4.0.0"
+  flutter: ">=3.44.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  dodopayments_checkout:
+    path: ../
+  http: ^1.2.0
+  app_links: ^6.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
