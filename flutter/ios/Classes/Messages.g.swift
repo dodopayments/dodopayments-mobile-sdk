@@ -201,9 +201,8 @@ enum NativeCheckoutStatus: Int, CaseIterable {
 /// to decide the checkout outcome.
 enum NativeEventType: Int, CaseIterable {
   case opened = 0
-  case navigation = 1
-  case returnReceived = 2
-  case closed = 3
+  case returnReceived = 1
+  case closed = 2
 }
 
 /// Generated class from Pigeon that represents data sent in messages.
@@ -360,41 +359,35 @@ struct NativeAbandonedSession: Hashable, CustomStringConvertible {
 /// Generated class from Pigeon that represents data sent in messages.
 struct NativeCheckoutEvent: Hashable, CustomStringConvertible {
   var type: NativeEventType
-  /// Only set when [type] is `navigation`.
-  var host: String? = nil
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
   static func fromList(_ pigeonVar_list: [Any?]) -> NativeCheckoutEvent? {
     let type = pigeonVar_list[0] as! NativeEventType
-    let host: String? = nilOrValue(pigeonVar_list[1])
 
     return NativeCheckoutEvent(
-      type: type,
-      host: host
+      type: type
     )
   }
   func toList() -> [Any?] {
     return [
-      type,
-      host,
+      type
     ]
   }
   static func == (lhs: NativeCheckoutEvent, rhs: NativeCheckoutEvent) -> Bool {
     if Swift.type(of: lhs) != Swift.type(of: rhs) {
       return false
     }
-    return MessagesPigeonInternal.deepEquals(lhs.type, rhs.type) && MessagesPigeonInternal.deepEquals(lhs.host, rhs.host)
+    return MessagesPigeonInternal.deepEquals(lhs.type, rhs.type)
   }
 
   func hash(into hasher: inout Hasher) {
     hasher.combine("NativeCheckoutEvent")
     MessagesPigeonInternal.deepHash(value: type, hasher: &hasher)
-    MessagesPigeonInternal.deepHash(value: host, hasher: &hasher)
   }
 
   public var description: String {
-    return "NativeCheckoutEvent(type: \(String(describing: type)), host: \(String(describing: host)))"
+    return "NativeCheckoutEvent(type: \(String(describing: type)))"
   }
 }
 

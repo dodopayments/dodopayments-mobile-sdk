@@ -91,18 +91,14 @@ class NativeAbandonedSession {
 /// to decide the checkout outcome.
 enum NativeEventType {
   opened,
-  navigation,
   returnReceived,
   closed,
 }
 
 class NativeCheckoutEvent {
-  NativeCheckoutEvent({required this.type, this.host});
+  NativeCheckoutEvent({required this.type});
 
   NativeEventType type;
-
-  /// Only set when [type] is `navigation`.
-  String? host;
 }
 
 /// Implemented natively (Swift/Kotlin), called from Dart. Presents an

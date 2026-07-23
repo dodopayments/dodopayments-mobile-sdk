@@ -121,12 +121,10 @@ class DodoCheckoutFlutterPlugin : FlutterPlugin, ActivityAware, DodoCheckoutHost
 
 private fun CheckoutEvent.toNative(): NativeCheckoutEvent {
   return when (this) {
-    is CheckoutEvent.Opened -> NativeCheckoutEvent(type = NativeEventType.OPENED, host = null)
-    is CheckoutEvent.Navigation ->
-        NativeCheckoutEvent(type = NativeEventType.NAVIGATION, host = host)
+    is CheckoutEvent.Opened -> NativeCheckoutEvent(type = NativeEventType.OPENED)
     is CheckoutEvent.ReturnReceived ->
-        NativeCheckoutEvent(type = NativeEventType.RETURN_RECEIVED, host = null)
-    is CheckoutEvent.Closed -> NativeCheckoutEvent(type = NativeEventType.CLOSED, host = null)
+        NativeCheckoutEvent(type = NativeEventType.RETURN_RECEIVED)
+    is CheckoutEvent.Closed -> NativeCheckoutEvent(type = NativeEventType.CLOSED)
   }
 }
 

@@ -4,7 +4,7 @@
 const startMock = jest.fn();
 const getAbandonedMock = jest.fn();
 const clearAbandonedMock = jest.fn();
-let eventListener: ((event: { type: string; host?: string }) => void) | null =
+let eventListener: ((event: { type: string }) => void) | null =
   null;
 const removeMock = jest.fn();
 
@@ -97,7 +97,7 @@ describe('DodoCheckout.start', () => {
   it('forwards lifecycle events to onEvent and unsubscribes after', async () => {
     startMock.mockImplementation(async () => {
       eventListener?.({ type: 'checkout.opened' });
-      eventListener?.({ type: 'checkout.navigation', host: 'checkout.dodopayments.com' });
+      eventListener?.({ type: 'checkout.return_received' });
       return { status: 'succeeded', paymentId: 'pay_1', raw: {} };
     });
 
@@ -108,7 +108,7 @@ describe('DodoCheckout.start', () => {
       onEvent: (e) => events.push(e.type),
     });
 
-    expect(events).toEqual(['checkout.opened', 'checkout.navigation']);
+    expect(events).toEqual(['checkout.opened', 'checkout.return_received']);
     expect(removeMock).toHaveBeenCalledTimes(1);
   });
 });

@@ -108,13 +108,11 @@ extension DodoCheckoutFlutterPlugin: DodoCheckoutHostApi {
   private static func toNative(_ event: CheckoutEvent) -> NativeCheckoutEvent {
     switch event {
     case .opened:
-      return NativeCheckoutEvent(type: .opened, host: nil)
-    case .navigation(let host):
-      return NativeCheckoutEvent(type: .navigation, host: host)
+      return NativeCheckoutEvent(type: .opened)
     case .returnReceived:
-      return NativeCheckoutEvent(type: .returnReceived, host: nil)
+      return NativeCheckoutEvent(type: .returnReceived)
     case .closed:
-      return NativeCheckoutEvent(type: .closed, host: nil)
+      return NativeCheckoutEvent(type: .closed)
     }
   }
 

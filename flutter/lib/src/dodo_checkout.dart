@@ -63,12 +63,10 @@ class DodoCheckout {
             onEvent(CheckoutEvent(
               type: switch (event.type) {
                 NativeEventType.opened => CheckoutEventType.opened,
-                NativeEventType.navigation => CheckoutEventType.navigation,
                 NativeEventType.returnReceived =>
                   CheckoutEventType.returnReceived,
                 NativeEventType.closed => CheckoutEventType.closed,
               },
-              host: event.host,
             ));
           });
 

@@ -82,8 +82,6 @@ class DodoCheckoutModule(reactContext: ReactApplicationContext) :
   private fun emitEvent(event: CheckoutEvent) {
     val payload = Arguments.createMap().apply {
       putString("type", event.name)
-      // host lives only on the Navigation case of the sealed CheckoutEvent.
-      if (event is CheckoutEvent.Navigation) putString("host", event.host)
     }
     emitOnCheckoutEvent(payload)
   }
