@@ -11,7 +11,7 @@ on:
 jobs:
   ios:
     name: iOS core (swift test)
-    runs-on: macos-14
+    runs-on: macos-26
     defaults:
       run:
         working-directory: swift
