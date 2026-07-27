@@ -52,7 +52,7 @@ mavenPublishing {
     pom {
         name.set("Dodo Payments Checkout for Android")
         description.set("Open Dodo Payments' hosted checkout in a Custom Tab and get a clean result from one call.")
-        url.set("https://github.com/dodopayments/dodopayments-checkout-android")
+        url.set("https://github.com/dodopayments/dodopayments-mobile-sdk")
         licenses {
             license {
                 name.set("Apache-2.0")
@@ -66,9 +66,9 @@ mavenPublishing {
             }
         }
         scm {
-            url.set("https://github.com/dodopayments/dodopayments-checkout-android")
-            connection.set("scm:git:git://github.com/dodopayments/dodopayments-checkout-android.git")
-            developerConnection.set("scm:git:ssh://git@github.com/dodopayments/dodopayments-checkout-android.git")
+            url.set("https://github.com/dodopayments/dodopayments-mobile-sdk")
+            connection.set("scm:git:git://github.com/dodopayments/dodopayments-mobile-sdk.git")
+            developerConnection.set("scm:git:ssh://git@github.com/dodopayments/dodopayments-mobile-sdk.git")
         }
     }
 }

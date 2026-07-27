@@ -15,7 +15,16 @@ jobs:
       run:
         working-directory: react-native
     steps:
+      # submodules: swift/ is a submodule on dodopayments-mobile-sdk-ios, and
+      # scripts/sync-ios-core.sh vendors the iOS core out of it. A plain
+      # checkout leaves swift/ empty and the vendoring step fails.
+      # While that repo is internal, GITHUB_TOKEN cannot read it: set
+      # SWIFT_SUBMODULE_TOKEN to a PAT with read access to this repo *and* the
+      # iOS repo. Once the iOS repo is public, the fallback is enough.
       - uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.SWIFT_SUBMODULE_TOKEN || secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-node@v4
         with:
