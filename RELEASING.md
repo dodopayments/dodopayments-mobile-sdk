@@ -38,33 +38,39 @@ Publishes via GitHub Actions OIDC — no long-lived secret. One-time setup:
    enable GitHub Actions publishing and set the repository to
    `dodopayments/dodopayments-mobile-sdk` with tag pattern `flutter-v{{version}}`.
 
-### Swift → satellite repo
+### Swift → satellite repo (git submodule)
 
 SPM resolves packages by git tag on the repo containing `Package.swift`, and
-requires that file at the repo's root — which this monorepo's `swift/`
-subdirectory can't satisfy directly. Releasing therefore mirrors `swift/` out
-to a dedicated repo on every release.
+requires that file at the repo's root — which this monorepo can't satisfy
+directly. `swift/` is a **git submodule** pointing at
+`dodopayments/dodopayments-mobile-sdk-ios`, which is the canonical source for
+the Swift package; this monorepo just pins a commit of it. That repo has its
+own CI (`.github/workflows/ci.yml` there) and needs no secrets from this repo.
 
-1. Create the GitHub repo `dodopayments/dodopayments-checkout-ios` **with an
-   initial commit** (a README is enough). `actions/checkout` cannot check out a
-   truly empty repo (it fails with `couldn't find remote ref`), so the mirror
-   job would never get off the ground.
-2. Generate a GitHub PAT (fine-grained, scoped to that repo, Contents:
-   read/write) or a deploy key with write access.
-3. Add it as the `SWIFT_MIRROR_TOKEN` secret on **this** repo
-   (`dodopayments-mobile-sdk`).
+Cloning this repo does **not** pull in Swift source by default:
 
-The satellite is a pure mirror of `swift/`: the sync runs `rsync --delete`, so
-anything that exists only there (a hand-edited README, a `.github/` dir) is
-deleted on the next release. `swift/LICENSE` is already in the mirror set, so
-the license travels automatically, with nothing to copy by hand.
+```sh
+git clone --recurse-submodules https://github.com/dodopayments/dodopayments-mobile-sdk.git
+# or, after a normal clone:
+git submodule update --init --recursive
+```
 
-**Current state:** `dodopayments-checkout-ios` already has `v1.0.0`, pushed by
-hand before this workflow existed, and its contents match `swift/` exactly.
-This monorepo has no matching tag. The mirror job now refuses to overwrite a
-tag the satellite already published (moving a tag breaks the revision SPM
-consumers pinned in `Package.resolved`), so the next Swift release from here
-must be `v1.0.1` or later.
+To make a change to Swift code:
+
+```sh
+cd swift
+git checkout main            # submodules start in detached HEAD
+# ...edit, commit, push to dodopayments-mobile-sdk-ios directly...
+cd ..
+git add swift                 # stages the new pinned commit
+git commit -m "..."           # a normal commit in this repo
+```
+
+**Current state:** `dodopayments-mobile-sdk-ios` already has `v1.0.0`. The
+Swift package has no version field of its own — SPM versions come purely from
+tags on the satellite repo. Releasing means tagging
+`dodopayments-mobile-sdk-ios` directly (build/test there first), then bumping
+this repo's submodule pointer to match if you want the monorepo to reflect it.
 
 ### Bump-dependents PR bot
 
@@ -87,7 +93,7 @@ tag format and what happens:
 | Kotlin | `version` in `kotlin/build.gradle.kts` | `kotlin-v1.0.1` | `.github/workflows/release-kotlin.yml` — tests, then publishes to Maven Central |
 | React Native | `version` in `react-native/package.json` | `react-native-v1.0.1` | `.github/workflows/release-react-native.yml` - vendors the Swift core, builds `lib/`, tests, verifies both the build output and the vendored core are in the pack, publishes to npm |
 | Flutter | `version` in `flutter/pubspec.yaml`, `flutter/android/build.gradle`, and `flutter/ios/dodopayments_checkout.podspec` (all three, kept in sync) | `flutter-v1.0.1` | `.github/workflows/release-flutter.yml` — same vendor-then-verify pattern, publishes to pub.dev |
-| Swift | *(no version field — SPM versions come purely from the tag)* | `v1.0.1` | `.github/workflows/release-swift.yml` — builds/tests, mirrors `swift/` into the satellite repo, tags it there |
+| Swift | *(no version field — SPM versions come purely from the tag)* | `v1.0.1` | Tag `dodopayments-mobile-sdk-ios` directly (its own CI builds/tests); optionally bump this repo's `swift` submodule pointer to match |
 
 A version bump PR should also update that package's `CHANGELOG.md`.
 
@@ -106,10 +112,13 @@ opens a PR bumping that pin in both React Native and Flutter. It does **not**
 auto-merge — review it, let CI go green, then merge and release those
 packages if you want the update to reach their consumers.
 
-Swift doesn't need this: React Native and Flutter each re-vendor the Swift
-core fresh from `swift/` in their own release workflows (`scripts/sync-ios-core.sh`),
-not from a pinned or committed copy — the next time either releases, it
-automatically picks up whatever `swift/` currently contains.
+Swift is similar but not automatic anymore now that `swift/` is a submodule:
+React Native and Flutter each re-vendor the Swift core fresh from `swift/` in
+their own release workflows (`scripts/sync-ios-core.sh`), so they pick up
+whatever commit the submodule is *currently pinned to* — not necessarily the
+satellite repo's latest. If you release a new Swift version, remember to bump
+this repo's submodule pointer (see above) before releasing React Native or
+Flutter, or they'll vendor a stale Swift commit.
 
 ## Verifying before you tag
 
