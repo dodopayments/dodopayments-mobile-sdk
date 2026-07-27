@@ -28,7 +28,7 @@ on iOS, a Custom Tab (`androidx.browser.customtabs`) on Android.
 
 ```kotlin
 // build.gradle.kts
-implementation("com.dodopayments:checkout-android:1.0.0")
+implementation("com.dodopayments.api:checkout-android:1.0.0")
 ```
 
 **React Native**
@@ -52,7 +52,7 @@ Check each SDK's README (linked below) for setup and usage.
 | Platform | Package | Docs |
 |---|---|---|
 | iOS (Swift) | [Swift Package Manager](https://github.com/dodopayments/dodopayments-mobile-sdk-ios) | [dodopayments-mobile-sdk-ios/README.md](https://github.com/dodopayments/dodopayments-mobile-sdk-ios/blob/main/README.md) |
-| Android (Kotlin) | `com.dodopayments:checkout-android` | [kotlin/README.md](kotlin/README.md) |
+| Android (Kotlin) | `com.dodopayments.api:checkout-android` | [kotlin/README.md](kotlin/README.md) |
 | React Native | [`@dodopayments/react-native-checkout`](https://www.npmjs.com/package/@dodopayments/react-native-checkout) | [react-native/README.md](react-native/README.md) |
 | Flutter | [`dodopayments_checkout`](https://pub.dev/packages/dodopayments_checkout) | [flutter/README.md](flutter/README.md) |
 

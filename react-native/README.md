@@ -14,7 +14,7 @@ iOS 16+, Android minSdk 24.
 npm i @dodopayments/react-native-checkout
 ```
 
-- **Android:** autolinked. Pulls `com.dodopayments:checkout-android` from Maven.
+- **Android:** autolinked. Pulls `com.dodopayments.api:checkout-android` from Maven.
 - **iOS:** `cd ios && pod install`. The Swift core is bundled in the package.
 - **Expo:** works with development builds (not Expo Go). Add the plugin:
   ```json

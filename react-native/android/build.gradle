@@ -58,7 +58,7 @@ dependencies {
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0"
 
   // Checkout logic lives in the Android core SDK.
-  implementation "com.dodopayments:checkout-android:1.0.0"
+  implementation "com.dodopayments.api:checkout-android:1.0.0"
 }
 
 if (isNewArchitectureEnabled()) {

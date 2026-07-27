@@ -33,9 +33,9 @@ jobs:
         run: |
           TAG="${{ github.event.workflow_run.head_branch }}"
           VERSION="${TAG#kotlin-v}"
-          sed -i "s/com.dodopayments:checkout-android:[0-9.]*/com.dodopayments:checkout-android:${VERSION}/" \
+          sed -i "s/com\.dodopayments\.api:checkout-android:[0-9.]*/com.dodopayments.api:checkout-android:${VERSION}/" \
             react-native/android/build.gradle flutter/android/build.gradle
-          echo "BUMP_SUMMARY=Bump com.dodopayments:checkout-android to ${VERSION} in react-native and flutter" >> "$GITHUB_ENV"
+          echo "BUMP_SUMMARY=Bump com.dodopayments.api:checkout-android to ${VERSION} in react-native and flutter" >> "$GITHUB_ENV"
 
       - name: Open a PR with the bump
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1

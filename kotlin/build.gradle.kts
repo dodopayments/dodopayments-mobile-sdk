@@ -4,7 +4,10 @@ plugins {
     id("com.vanniktech.maven.publish") version "0.37.0"
 }
 
-group = "com.dodopayments"
+// com.dodopayments.api is the namespace verified on Maven Central (it already
+// hosts dodo-payments-java and dodo-payments-kotlin). The bare com.dodopayments
+// namespace is not registered, and Central rejects deployments to it.
+group = "com.dodopayments.api"
 version = "1.0.0"
 
 android {
@@ -47,7 +50,7 @@ mavenPublishing {
         signAllPublications()
     }
 
-    coordinates("com.dodopayments", "checkout-android", project.version.toString())
+    coordinates("com.dodopayments.api", "checkout-android", project.version.toString())
 
     pom {
         name.set("Dodo Payments Checkout for Android")
