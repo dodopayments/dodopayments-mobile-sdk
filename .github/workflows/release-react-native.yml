@@ -22,20 +22,44 @@ jobs:
           node-version: 20
           registry-url: "https://registry.npmjs.org"
 
+      - name: Verify the tag matches the version being published
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "react-native-v${VERSION}" ]; then
+            echo "Tag $TAG does not match package.json version $VERSION." >&2
+            echo "npm publishes the version in package.json, not the one in the tag. Aborting." >&2
+            exit 1
+          fi
+
       - run: npm ci
 
       - name: Vendor the Swift core for the iOS pod
         run: ./scripts/sync-ios-core.sh
 
+      # npm ci already ran this via the prepare script; run it explicitly so a
+      # build failure is attributed here rather than buried in install output.
+      - name: Build lib/ (the commonjs, module, and typescript entry points)
+        run: npm run build
+
       - run: npm run typecheck
       - run: npm test
 
-      - name: Verify the published tarball actually contains the vendored core
+      - name: Verify the published tarball contains the build output and the vendored core
         run: |
-          npm pack --dry-run 2>&1 | grep -q "ios/DodoCore/DodoCheckout.swift" || {
-            echo "ios/DodoCore is missing from the pack — aborting before publish." >&2
-            exit 1
-          }
+          PACK="$(npm pack --dry-run 2>&1)"
+          for REQUIRED in \
+            "ios/DodoCore/DodoCheckout.swift" \
+            "lib/commonjs/index.js" \
+            "lib/module/index.js" \
+            "lib/typescript/index.d.ts"
+          do
+            echo "$PACK" | grep -q "$REQUIRED" || {
+              echo "$REQUIRED is missing from the pack. Aborting before publish." >&2
+              exit 1
+            }
+          done
 
       - run: npm publish
         env:

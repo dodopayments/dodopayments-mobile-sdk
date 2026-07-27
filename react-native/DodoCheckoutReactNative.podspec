@@ -11,7 +11,9 @@ Pod::Spec.new do |s|
   s.authors      = "Dodo Payments"
   # Matches ../swift/Package.swift's iOS minimum — the vendored core (ios/DodoCore/) requires it.
   s.platforms    = { :ios => "16.0" }
-  s.source       = { :git => "https://github.com/dodopayments/dodopayments-checkout-react-native.git", :tag => "#{s.version}" }
+  # Never fetched in practice: RN autolinking points CocoaPods at this pod by
+  # :path inside node_modules. Present because CocoaPods requires the field.
+  s.source       = { :git => "https://github.com/dodopayments/dodopayments-mobile-sdk.git", :tag => "react-native-v#{s.version}" }
 
   # The bridge (ios/) plus a vendored copy of the Swift core (ios/DodoCore/).
   # The core is copied in at release time from the tagged iOS SDK because RN

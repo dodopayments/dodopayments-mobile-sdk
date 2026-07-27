@@ -21,6 +21,21 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Verify the tag matches the version being published
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          VERSION="$(sed -n 's/^version = "\(.*\)"$/\1/p' build.gradle.kts)"
+          if [ -z "$VERSION" ]; then
+            echo "Could not read version from kotlin/build.gradle.kts." >&2
+            exit 1
+          fi
+          if [ "$TAG" != "kotlin-v${VERSION}" ]; then
+            echo "Tag $TAG does not match build.gradle.kts version $VERSION." >&2
+            echo "Gradle publishes the version in build.gradle.kts, not the one in the tag. Aborting." >&2
+            exit 1
+          fi
+
       - run: ./gradlew test
 
       - name: Publish to Maven Central

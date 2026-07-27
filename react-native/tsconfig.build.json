@@ -1,0 +1,10 @@
+{
+  // The root tsconfig.json is the typecheck config (noEmit). Bob's typescript
+  // target needs to actually emit declarations, so it gets its own config.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "lib", "example", "__tests__"]
+}
