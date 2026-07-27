@@ -6,7 +6,7 @@ and get a clean result from one call. Thin wrapper over the native
 iOS/Android cores — no checkout logic of its own.
 
 Turbo Module, **New Architecture only**, React Native 0.76+. Requirements:
-iOS 16+, Android minSdk 23.
+iOS 16+, Android minSdk 24.
 
 ## Install
 

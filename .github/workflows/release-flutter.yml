@@ -26,6 +26,25 @@ jobs:
         with:
           flutter-version: "3.44.0"
 
+      # Flutter carries the version in three places that have to agree, and
+      # pub.dev publishes whatever pubspec.yaml says regardless of the tag.
+      - name: Verify the tag matches the version in all three places
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          PUBSPEC="$(sed -n 's/^version: *\(.*\)$/\1/p' pubspec.yaml)"
+          GRADLE="$(sed -n 's/^version = "\(.*\)"$/\1/p' android/build.gradle)"
+          PODSPEC="$(sed -n "s/^ *s\.version *= *'\(.*\)'$/\1/p" ios/dodopayments_checkout.podspec)"
+          echo "pubspec.yaml=$PUBSPEC android/build.gradle=$GRADLE podspec=$PODSPEC tag=$TAG"
+          if [ "$TAG" != "flutter-v${PUBSPEC}" ]; then
+            echo "Tag $TAG does not match pubspec.yaml version $PUBSPEC. Aborting." >&2
+            exit 1
+          fi
+          if [ "$GRADLE" != "$PUBSPEC" ] || [ "$PODSPEC" != "$PUBSPEC" ]; then
+            echo "Version drift: pubspec.yaml, android/build.gradle, and the podspec must all match." >&2
+            exit 1
+          fi
+
       - name: Vendor the Swift core for the iOS pod
         run: ./scripts/sync-ios-core.sh
 

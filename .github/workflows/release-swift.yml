@@ -11,7 +11,11 @@ on:
 
 jobs:
   mirror:
-    runs-on: ubuntu-latest
+    # macos, not ubuntu: every UIKit-dependent file in the core is behind
+    # `#if canImport(UIKit)`, so a Linux build compiles the entire iOS surface
+    # out and the gate would pass without verifying what actually ships.
+    # Matches ci.yml.
+    runs-on: macos-26
     steps:
       - name: Checkout monorepo at the tag
         uses: actions/checkout@v4
@@ -25,16 +29,38 @@ jobs:
           token: ${{ secrets.SWIFT_MIRROR_TOKEN }}
           path: dodopayments-checkout-ios
 
+      # SPM consumers pin a tag to a specific revision in Package.resolved, so
+      # moving a tag that is already published breaks their checkouts with a
+      # revision mismatch. Bump to a new version instead of re-tagging.
+      - name: Refuse to overwrite a tag the satellite has already published
+        working-directory: dodopayments-checkout-ios
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          if git ls-remote --tags origin "refs/tags/$TAG" | grep -q .; then
+            echo "$TAG already exists on dodopayments-checkout-ios." >&2
+            echo "SPM consumers may have resolved it already. Bump to a new version instead of re-tagging." >&2
+            exit 1
+          fi
+
       - name: Verify the core builds and tests pass before mirroring
         working-directory: mobile-sdk/swift
         run: |
           swift build
           swift test
 
+      - name: Verify the core compiles for the iOS Simulator
+        working-directory: mobile-sdk/swift
+        run: xcodebuild -scheme DodoCheckout -destination 'generic/platform=iOS Simulator' build
+
       - name: Sync swift/ into the satellite repo, preserving its own git history
-        # Excludes match swift/.gitignore — swift build/test (above) regenerates
-        # .build/ and .swiftpm/ right before this step, so without these
-        # excludes rsync would copy those build artifacts into the mirror.
+        # Excludes match swift/.gitignore: the build/test steps above
+        # regenerate .build/ and .swiftpm/ right before this step, so without
+        # these excludes rsync would copy those build artifacts into the mirror.
+        #
+        # Note --delete: the satellite is a pure mirror of swift/, so anything
+        # that exists only there (a hand-edited README, a .github/ dir) is
+        # removed on every release. Add such files under swift/ instead.
         run: |
           rsync -a --delete \
             --exclude='.git' \
@@ -52,11 +78,19 @@ jobs:
           git config user.name "dodopayments-bot"
           git config user.email "bot@dodopayments.com"
           git add -A
+          echo "Staged for the mirror:"
+          git status --short
+
+          if git diff --cached --name-only | grep -qE '^(\.build|\.swiftpm|Package\.resolved)'; then
+            echo "Build artifacts leaked into the mirror. Check the rsync excludes." >&2
+            exit 1
+          fi
+
           if git diff --cached --quiet; then
-            echo "No changes to mirror for $TAG."
+            echo "No changes to mirror for $TAG; tagging the existing HEAD."
           else
             git commit -m "Sync from dodopayments-mobile-sdk@${GITHUB_SHA}"
           fi
-          git tag -f "$TAG"
+          git tag "$TAG"
           git push origin main
-          git push origin "$TAG" --force
+          git push origin "$TAG"
