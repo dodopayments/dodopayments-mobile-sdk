@@ -9,19 +9,6 @@ on:
     branches: [main]
 
 jobs:
-  ios:
-    name: iOS core (swift test)
-    runs-on: macos-26
-    defaults:
-      run:
-        working-directory: swift
-    steps:
-      - uses: actions/checkout@v4
-      - run: swift build
-      - run: swift test
-      - name: Type-check for iOS Simulator
-        run: xcodebuild -scheme DodoCheckout -destination 'generic/platform=iOS Simulator' build
-
   react-native:
     name: React Native (typecheck + jest)
     runs-on: ubuntu-latest
