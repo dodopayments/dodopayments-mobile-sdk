@@ -21,7 +21,7 @@ on iOS, a Custom Tab (`androidx.browser.customtabs`) on Android.
 
 ```swift
 // Package.swift
-.package(url: "https://github.com/dodopayments/dodopayments-checkout-ios", from: "1.0.0")
+.package(url: "https://github.com/dodopayments/dodopayments-mobile-sdk-ios", from: "1.0.0")
 ```
 
 **Kotlin (Android)**
@@ -51,7 +51,7 @@ Check each SDK's README (linked below) for setup and usage.
 
 | Platform | Package | Docs |
 |---|---|---|
-| iOS (Swift) | [Swift Package Manager](https://github.com/dodopayments/dodopayments-checkout-ios) | [swift/README.md](swift/README.md) |
+| iOS (Swift) | [Swift Package Manager](https://github.com/dodopayments/dodopayments-mobile-sdk-ios) | [dodopayments-mobile-sdk-ios/README.md](https://github.com/dodopayments/dodopayments-mobile-sdk-ios/blob/main/README.md) |
 | Android (Kotlin) | `com.dodopayments:checkout-android` | [kotlin/README.md](kotlin/README.md) |
 | React Native | [`@dodopayments/react-native-checkout`](https://www.npmjs.com/package/@dodopayments/react-native-checkout) | [react-native/README.md](react-native/README.md) |
 | Flutter | [`dodopayments_checkout`](https://pub.dev/packages/dodopayments_checkout) | [flutter/README.md](flutter/README.md) |
@@ -83,7 +83,7 @@ See each SDK's README for the exact API and platform setup.
 
 ```
 dodopayments-mobile-sdk/
-├── swift/          # iOS core (Swift Package). Mirrored to a satellite repo on release.
+├── swift/          # iOS core (Swift Package). Git submodule → dodopayments-mobile-sdk-ios.
 ├── kotlin/         # Android core (Kotlin/Gradle). Published to Maven Central.
 ├── react-native/   # Turbo Module wrapper over the iOS/Android cores. Published to npm.
 └── flutter/        # Pigeon wrapper over the iOS/Android cores. Published to pub.dev.
