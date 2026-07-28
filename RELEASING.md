@@ -32,11 +32,36 @@ handles the rest.
 
 Publishes via GitHub Actions OIDC — no long-lived secret. One-time setup:
 
-1. Publish the package manually once (`dart pub publish` from a local
-   machine) so it exists on pub.dev under your account.
-2. In the package's pub.dev admin page (Admin tab → Automated publishing),
+1. Publish the package manually once. pub cannot create a *new* package from
+   CI ("you can only automate publishing of existing packages"), so the first
+   version has to come off a developer machine. Needs Flutter ≥ 3.44:
+
+   ```sh
+   cd flutter
+   dart pub logout && dart pub login   # pick the account deliberately, see below
+   ./scripts/sync-ios-core.sh          # REQUIRED — see note
+   dart pub publish
+   ```
+
+   `sync-ios-core.sh` is not optional. `ios/DodoCheckoutCore/` is git-ignored
+   and only materialised by that script, so skipping it publishes a package
+   with no iOS implementation. Confirm the tree it prints lists the
+   `DodoCheckoutCore` files before answering `y`.
+
+   Whoever publishes first becomes the package's sole uploader, so run this as
+   a `@dodopayments.com` account rather than a personal one where possible.
+
+2. Transfer the package to the `dodopayments.com` verified publisher (Admin tab
+   → Transfer to Publisher). This is a separate step because pub refuses to
+   publish a brand-new package straight to a publisher, and it is **one-way** —
+   a package can never be moved back to an individual account.
+3. In the package's pub.dev admin page (Admin tab → Automated publishing),
    enable GitHub Actions publishing and set the repository to
    `dodopayments/dodopayments-mobile-sdk` with tag pattern `flutter-v{{version}}`.
+
+Step 1 consumes a version number — whatever it publishes can never be reused
+(retraction within 7 days only marks a version, it never frees it), so the
+first *automated* release is the version after it.
 
 ### Swift → satellite repo (git submodule)
 
