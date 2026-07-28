@@ -2,8 +2,10 @@ name: Release Flutter
 
 # Triggered by pushing a tag like flutter-v1.0.0. Vendors the Swift core
 # (see scripts/sync-ios-core.sh), verifies, then publishes to pub.dev via
-# GitHub Actions OIDC — no long-lived token needed, but this repo/environment
-# must be verified once in the package's pub.dev admin settings first.
+# GitHub Actions OIDC — no long-lived token needed. Two one-time prerequisites,
+# both covered in RELEASING.md: the package must already exist on pub.dev (pub
+# cannot create a new package from CI), and automated publishing must be
+# configured in its Admin tab with tag pattern flutter-v{{version}}.
 on:
   push:
     tags:
@@ -27,6 +29,14 @@ jobs:
         with:
           submodules: true
           token: ${{ secrets.SWIFT_SUBMODULE_TOKEN || secrets.GITHUB_TOKEN }}
+
+      # Required, despite looking redundant next to flutter-action below: this
+      # is the only step that turns the OIDC token into a pub credential (it
+      # runs `dart pub token add https://pub.dev --env-var PUB_TOKEN`), and
+      # flutter-action does no token handling at all. Its `dart` is then
+      # shadowed by Flutter's, which is fine — the credential lives in pub's
+      # config, not the SDK. Delete this and every release fails unauthenticated.
+      - uses: dart-lang/setup-dart@v1
 
       - uses: subosito/flutter-action@v2
         with:
@@ -57,11 +67,43 @@ jobs:
       - run: flutter pub get
       - run: flutter test
 
+      # `dart pub publish --dry-run` renders the package as a tree, so no line
+      # ever contains a joined path like "DodoCheckoutCore/DodoCheckout.swift".
+      # Match on basenames instead, and keep the dry run's own exit code rather
+      # than piping it into grep, so a genuinely failing dry run can't pass.
       - name: Verify the package actually includes the vendored core
         run: |
-          dart pub publish --dry-run 2>&1 | grep -q "DodoCheckoutCore/DodoCheckout.swift" || {
+          if ! OUT="$(dart pub publish --dry-run 2>&1)"; then
+            printf '%s\n' "$OUT" >&2
+            echo "dart pub publish --dry-run failed — aborting before publish." >&2
+            exit 1
+          fi
+          printf '%s\n' "$OUT"
+
+          if ! printf '%s\n' "$OUT" | grep -qF 'DodoCheckoutCore'; then
             echo "ios/DodoCheckoutCore is missing from the package — aborting before publish." >&2
             exit 1
-          }
+          fi
+
+          # Check against the submodule source, not ios/DodoCheckoutCore: looping
+          # over the vendored copy would only ever compare it to itself, so a
+          # file the sync missed is silently never looked for.
+          shopt -s nullglob
+          src=(../swift/Sources/DodoCheckout/*.swift)
+          shopt -u nullglob
+          if [ "${#src[@]}" -eq 0 ]; then
+            echo "no Swift sources under ../swift — is the submodule checked out?" >&2
+            exit 1
+          fi
+
+          rc=0
+          for f in "${src[@]}"; do
+            base="$(basename "$f")"
+            if ! printf '%s\n' "$OUT" | grep -qF "$base"; then
+              echo "core file missing from the package: $base" >&2
+              rc=1
+            fi
+          done
+          exit "$rc"
 
       - run: dart pub publish --force
