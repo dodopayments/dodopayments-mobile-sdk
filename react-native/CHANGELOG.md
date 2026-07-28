@@ -14,6 +14,10 @@
 - Correct the documented minimum React Native version from 0.76.0 to
   0.77.0 — 0.76's `CodegenTypes` module has no `EventEmitter` export, so
   this spec never actually typechecked on 0.76 in the first place.
+- Document the real Android floor: `compileSdk` 34, taken from the AAR
+  metadata of the AndroidX artifacts the native core depends on. There is
+  no Kotlin Gradle plugin or AGP floor beyond what React Native itself
+  imposes.
 
 ## 1.0.0
 

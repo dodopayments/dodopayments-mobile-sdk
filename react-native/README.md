@@ -8,6 +8,15 @@ iOS/Android cores — no checkout logic of its own.
 Turbo Module, **New Architecture only**, React Native 0.77+. Requirements:
 iOS 16+, Android minSdk 24.
 
+> **Note:** Your Android app must build with `compileSdk` 34 or higher —
+> that is the floor declared in the AAR metadata of the AndroidX artifacts
+> the native core depends on (`androidx.activity`, `androidx.browser`,
+> `androidx.core`). This module's own `compileSdkVersion` defaults to 35 and
+> follows your project's `rootProject.ext.compileSdkVersion` when set. There
+> is no Kotlin Gradle plugin or AGP floor beyond what your React Native
+> version already imposes — RN 0.79's defaults (Kotlin 2.0.21 / AGP 8.8.2)
+> are sufficient.
+
 ## Install
 
 ```sh
