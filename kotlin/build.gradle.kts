@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("com.android.library") version "8.13.0"
     id("org.jetbrains.kotlin.android") version "2.1.20"
@@ -22,9 +24,13 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+}
 
-    kotlinOptions {
-        jvmTarget = "17"
+// compilerOptions, not android.kotlinOptions: the latter is a hard error from
+// Kotlin 2.3 onward, so it would block the next Kotlin Gradle plugin bump.
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 
