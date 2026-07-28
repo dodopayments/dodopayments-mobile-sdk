@@ -8,12 +8,6 @@ iOS/Android cores — no checkout logic of its own.
 Turbo Module, **New Architecture only**, React Native 0.77+. Requirements:
 iOS 16+, Android minSdk 24.
 
-> **Note:** If your app is on React Native <0.80, your project's own Kotlin
-> Gradle plugin version must be 2.1+. Below that (e.g. RN 0.79's default
-> 2.0.x), `react-android`'s own strict `kotlinx-coroutines-bom` pin forces a
-> stdlib metadata version your Kotlin compiler can't read, independent of
-> this SDK.
-
 ## Install
 
 ```sh
