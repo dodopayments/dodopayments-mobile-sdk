@@ -28,7 +28,7 @@ on iOS, a Custom Tab (`androidx.browser.customtabs`) on Android.
 
 ```kotlin
 // build.gradle.kts
-implementation("com.dodopayments.api:checkout-android:1.0.0")
+implementation("com.dodopayments.api:checkout-android:1.0.1")
 ```
 
 **React Native**

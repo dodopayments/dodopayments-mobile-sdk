@@ -1,4 +1,11 @@
-import type { TurboModule, CodegenTypes } from 'react-native';
+import type { TurboModule } from 'react-native';
+// Deep import (not the 'react-native' package's CodegenTypes namespace) so
+// codegen on RN <0.80 can resolve these by name. TODO: switch back to the
+// namespaced CodegenTypes.X form once the peer floor is >=0.80.
+import type {
+  UnsafeObject,
+  EventEmitter,
+} from 'react-native/Libraries/Types/CodegenTypes';
 import { TurboModuleRegistry } from 'react-native';
 
 /**
@@ -17,7 +24,7 @@ export type NativeCheckoutResult = {
   subscriptionId?: string;
   licenseKeys?: string[];
   customerEmail?: string;
-  raw: CodegenTypes.UnsafeObject; // { [key: string]: string }
+  raw: UnsafeObject; // { [key: string]: string }
 };
 
 export type NativeCheckoutEvent = {
@@ -43,7 +50,7 @@ export interface Spec extends TurboModule {
 
   // Codegen EventEmitter — replaces deprecated addListener/removeListeners +
   // NativeEventEmitter. Emits via emitOnCheckoutEvent on native.
-  readonly onCheckoutEvent: CodegenTypes.EventEmitter<NativeCheckoutEvent>;
+  readonly onCheckoutEvent: EventEmitter<NativeCheckoutEvent>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('DodoCheckout');
