@@ -1,4 +1,7 @@
 import type { TurboModule } from 'react-native';
+// Deep import (not the 'react-native' package's CodegenTypes namespace) so
+// codegen on RN <0.80 can resolve these by name. TODO: switch back to the
+// namespaced CodegenTypes.X form once the peer floor is >=0.80.
 import type {
   UnsafeObject,
   EventEmitter,
@@ -46,10 +49,7 @@ export interface Spec extends TurboModule {
   handleOpenURL(url: string): Promise<boolean>;
 
   // Codegen EventEmitter — replaces deprecated addListener/removeListeners +
-  // NativeEventEmitter. Emits via emitOnCheckoutEvent on native. Imported
-  // from the CodegenTypes module directly (not the 'react-native' package's
-  // CodegenTypes namespace) since codegen on RN <0.80 can't resolve
-  // namespaced generic type references.
+  // NativeEventEmitter. Emits via emitOnCheckoutEvent on native.
   readonly onCheckoutEvent: EventEmitter<NativeCheckoutEvent>;
 }
 

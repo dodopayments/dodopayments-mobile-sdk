@@ -5,7 +5,7 @@ Open Dodo Payments' hosted checkout in a system browser tab
 and get a clean result from one call. Thin wrapper over the native
 iOS/Android cores — no checkout logic of its own.
 
-Turbo Module, **New Architecture only**, React Native 0.76+. Requirements:
+Turbo Module, **New Architecture only**, React Native 0.77+. Requirements:
 iOS 16+, Android minSdk 24.
 
 > **Note:** If your app is on React Native <0.80, your project's own Kotlin
