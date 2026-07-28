@@ -12,7 +12,7 @@ version = "1.0.0"
 
 android {
     namespace = "com.dodopayments.checkout"
-    compileSdk = 36
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 23
@@ -31,9 +31,12 @@ android {
 dependencies {
     // androidx.activity + coroutines for the host activity; androidx.browser
     // (Custom Tabs) for the checkout surface. Still deliberately NO networking.
-    implementation("androidx.activity:activity-ktx:1.13.0")
-    implementation("androidx.browser:browser:1.10.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
+    // Pinned below the versions that pull in androidx.core builds requiring
+    // compileSdk 36+/AGP 8.9.1+, since we only use APIs stable since much
+    // older releases of both.
+    implementation("androidx.activity:activity-ktx:1.9.3")
+    implementation("androidx.browser:browser:1.8.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 
     // Unit tests are pure JVM (java.net.URI, no android.net.Uri) — plain JUnit.
     testImplementation("junit:junit:4.13.2")
