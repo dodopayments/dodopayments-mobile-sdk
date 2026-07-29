@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.2
+
+- Expo config plugin registers the merchant callback scheme at prebuild when
+  given `{ "scheme": "myapp" }`: writes Android
+  `manifestPlaceholders["dodoCallbackScheme"]` and an iOS `CFBundleURLTypes`
+  entry. Bare plugin entry without `scheme` remains a no-op for
+  compatibility. iOS still requires forwarding URLs via
+  `DodoCheckout.handleOpenURL`. Optional peer `@expo/config-plugins` is
+  `>=8.0.0` so Expo SDK 51+ is covered (SDK 52+ ships 9.x+).
+
 ## 1.0.1
 
 - Fix `NativeDodoCheckout.ts` codegen spec failing to parse on RN <0.80:
