@@ -25,8 +25,8 @@ npm i @dodopayments/react-native-checkout
 
 - **Android:** autolinked. Pulls `com.dodopayments.api:checkout-android` from Maven.
 - **iOS:** `cd ios && pod install`. The Swift core is bundled in the package.
-- **Expo:** development builds only (not Expo Go). Pass a **dedicated**
-  callback scheme to the config plugin so prebuild wires Android + iOS:
+- **Expo:** development builds only (not Expo Go). Pass your callback scheme to
+  the config plugin so prebuild wires Android + iOS:
   ```json
   {
     "expo": {
@@ -34,18 +34,15 @@ npm i @dodopayments/react-native-checkout
       "plugins": [
         [
           "@dodopayments/react-native-checkout",
-          { "scheme": "myapp.checkout" }
+          { "scheme": "myappcheckout" }
         ]
       ]
     }
   }
   ```
-  Then run `npx expo prebuild` (or rebuild a dev client). Use a scheme that is
-  **not** the same as top-level `expo.scheme` — otherwise Android may register
-  both MainActivity and the SDK redirect activity for the same scheme and the
-  checkout return can land on the wrong activity. The plugin scheme must match
-  `returnUrl` (e.g. `myapp.checkout://return`). Pass only the scheme token
-  (not a full `https://…` URL).
+  Then run `npx expo prebuild` (or rebuild a dev client). The scheme must match
+  `returnUrl` (e.g. `myappcheckout://return`) and must differ from `expo.scheme`,
+  which Expo already registers on MainActivity.
 
 ## Setup
 
@@ -66,7 +63,7 @@ On **bare React Native**:
   ```kotlin
   android {
       defaultConfig {
-          manifestPlaceholders["dodoCallbackScheme"] = "myapp.checkout"
+          manifestPlaceholders["dodoCallbackScheme"] = "myappcheckout"
       }
   }
   ```
@@ -82,7 +79,7 @@ Linking.addEventListener('url', ({ url }) => DodoCheckout.handleOpenURL(url));
 
 const result = await DodoCheckout.start({
   checkoutUrl,                          // from your backend
-  returnUrl: 'myapp.checkout://return', // scheme must be registered (see Setup)
+  returnUrl: 'myappcheckout://return', // scheme must be registered (see Setup)
   onEvent: (e) => console.log(e.type),  // logging only — never decide outcome from events
 });
 

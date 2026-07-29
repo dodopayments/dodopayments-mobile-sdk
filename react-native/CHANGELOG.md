@@ -3,7 +3,7 @@
 ## 1.1.0
 
 - Expo config plugin registers the merchant callback scheme at prebuild when
-  given `{ "scheme": "myapp.checkout" }`: writes Android
+  given `{ "scheme": "myappcheckout" }`: writes Android
   `manifestPlaceholders["dodoCallbackScheme"]` and an iOS `CFBundleURLTypes`
   entry. Bare plugin entry without `scheme` remains a no-op.
   - Rejects `http`/`https` and other system schemes; throws on invalid present

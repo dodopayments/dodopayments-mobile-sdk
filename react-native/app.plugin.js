@@ -1,4 +1,4 @@
-// Expo config plugin: ["@dodopayments/react-native-checkout", { "scheme": "myapp.checkout" }]
+// Expo config plugin: ["@dodopayments/react-native-checkout", { "scheme": "myappcheckout" }]
 // Writes Android dodoCallbackScheme + iOS CFBundleURLTypes. No-op without { scheme }.
 
 const BLOCKED_SCHEMES = new Set([
@@ -28,7 +28,7 @@ function resolveScheme(props) {
   if (typeof opts.scheme !== 'string' || !opts.scheme.trim()) {
     throw new Error(
       '[@dodopayments/react-native-checkout] plugin option "scheme" must be a non-empty string ' +
-        '(e.g. "myapp.checkout"), not a full URL.'
+        '(e.g. "myappcheckout"), not a full URL.'
     );
   }
 
@@ -42,7 +42,7 @@ function resolveScheme(props) {
   if (!raw || !/^[A-Za-z][A-Za-z0-9+.-]*$/.test(raw)) {
     throw new Error(
       `[@dodopayments/react-native-checkout] invalid scheme ${JSON.stringify(opts.scheme)}. ` +
-        'Use a custom scheme token like "myapp.checkout" (no spaces).'
+        'Use a custom scheme token like "myappcheckout" (no spaces).'
     );
   }
 
@@ -50,7 +50,7 @@ function resolveScheme(props) {
   if (BLOCKED_SCHEMES.has(scheme)) {
     throw new Error(
       `[@dodopayments/react-native-checkout] scheme ${JSON.stringify(scheme)} is not allowed. ` +
-        'Pass a custom app scheme (e.g. "myapp.checkout"), not http(s) or a system scheme. ' +
+        'Pass a custom app scheme (e.g. "myappcheckout"), not http(s) or a system scheme. ' +
         'If you have a full return URL, use only its scheme part.'
     );
   }
@@ -316,7 +316,7 @@ function withDodoCheckout(config, props) {
       `[@dodopayments/react-native-checkout] scheme "${scheme}" matches expo.scheme ` +
         '(or android/ios.scheme). On Android that registers the same scheme on MainActivity ' +
         'and BrowserRedirectActivity, which can send the checkout return to the wrong activity. ' +
-        'Prefer a dedicated scheme such as "myapp.checkout" and returnUrl "myapp.checkout://return".'
+        'Prefer a dedicated scheme such as "myappcheckout" and returnUrl "myappcheckout://return".'
     );
   }
 
