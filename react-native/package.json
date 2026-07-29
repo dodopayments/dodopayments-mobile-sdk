@@ -1,6 +1,6 @@
 {
   "name": "@dodopayments/react-native-checkout",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Open Dodo Payments' hosted checkout in a system browser tab from React Native.",
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",
@@ -75,16 +75,9 @@
   },
   "peerDependencies": {
     "react": "*",
-    "react-native": ">=0.77.0",
-    "@expo/config-plugins": ">=8.0.0"
-  },
-  "peerDependenciesMeta": {
-    "@expo/config-plugins": {
-      "optional": true
-    }
+    "react-native": ">=0.77.0"
   },
   "devDependencies": {
-    "@expo/config-plugins": "^54.0.0",
     "@types/jest": "^29.5.12",
     "@types/react": "^19.1.0",
     "jest": "^29.7.0",
