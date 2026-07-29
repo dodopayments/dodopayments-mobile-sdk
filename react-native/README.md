@@ -25,15 +25,32 @@ npm i @dodopayments/react-native-checkout
 
 - **Android:** autolinked. Pulls `com.dodopayments.api:checkout-android` from Maven.
 - **iOS:** `cd ios && pod install`. The Swift core is bundled in the package.
-- **Expo:** works with development builds (not Expo Go). Add the plugin:
+- **Expo:** development builds only (not Expo Go). Pass your callback scheme to
+  the config plugin so prebuild wires Android + iOS:
   ```json
-  { "expo": { "plugins": ["@dodopayments/react-native-checkout"] } }
+  {
+    "expo": {
+      "scheme": "myapp",
+      "plugins": [
+        [
+          "@dodopayments/react-native-checkout",
+          { "scheme": "myappcheckout" }
+        ]
+      ]
+    }
+  }
   ```
+  Then run `npx expo prebuild` (or rebuild a dev client). The scheme must match
+  `returnUrl` (e.g. `myappcheckout://return`) and must differ from `expo.scheme`,
+  which Expo already registers on MainActivity.
 
 ## Setup
 
 Register a callback URL scheme so the OS routes the checkout return back to
-your app:
+your app. On **Expo**, the config plugin above does this for both platforms —
+you only still need the iOS `Linking` forwarder in JS (see Use).
+
+On **bare React Native**:
 
 - **iOS:** add a URL type for your scheme in Info.plist, and forward incoming
   URLs from your app's own `Linking` handling into
@@ -46,7 +63,7 @@ your app:
   ```kotlin
   android {
       defaultConfig {
-          manifestPlaceholders["dodoCallbackScheme"] = "myapp"
+          manifestPlaceholders["dodoCallbackScheme"] = "myappcheckout"
       }
   }
   ```
@@ -62,7 +79,7 @@ Linking.addEventListener('url', ({ url }) => DodoCheckout.handleOpenURL(url));
 
 const result = await DodoCheckout.start({
   checkoutUrl,                          // from your backend
-  returnUrl: 'myapp://checkout/return', // scheme must be registered (see Setup)
+  returnUrl: 'myappcheckout://return', // scheme must be registered (see Setup)
   onEvent: (e) => console.log(e.type),  // logging only — never decide outcome from events
 });
 
