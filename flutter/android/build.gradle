@@ -67,6 +67,6 @@ android {
 dependencies {
     // The real SDK. All checkout logic (Custom Tab launch, return
     // interception, result parsing, abandoned-session store) lives here.
-    implementation("com.dodopayments.api:checkout-android:1.0.1")
+    implementation("com.dodopayments.api:checkout-android:1.0.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 }
