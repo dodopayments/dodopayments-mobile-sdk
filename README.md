@@ -75,9 +75,28 @@ understand the others:
   (`INVALID_CHECKOUT_URL`, `INVALID_RETURN_URL`, `ALREADY_IN_PROGRESS`,
   `PLATFORM_ERROR`). A user cancelling or a declined payment is always a
   **result**, never a thrown error.
-- Abandoned-session recovery, for when the app is killed mid-checkout.
+- Abandoned-session recovery, for every checkout that ends without the SDK
+  resolving its return URL to a durable outcome — the app killed mid-checkout,
+  a `cancelled` result, or a `pending` one.
 
 See each SDK's README for the exact API and platform setup.
+
+### `cancelled` does not mean the payment failed
+
+The SDK only ever learns the outcome from the return URL. A `cancelled` status
+means the user dismissed the browser before that URL arrived, so the real state
+is **unknown** — a user who pays and then closes the sheet while the hosted
+"Payment Successful" page counts down its redirect lands here, exactly like a
+user who closed it without paying.
+
+Don't map `cancelled` to a failure screen. The SDK keeps the checkout session on
+record for precisely this case: read it with `getAbandonedSession()`, resolve
+`sessionId` against your backend, and show what comes back.
+
+`pending` deserves the same treatment. Besides genuinely async methods, it is
+the fallback for a missing or unrecognized `status`, so an unparseable return
+URL lands there too — sometimes with no payment id either. The session is kept
+on record for it as well.
 
 ## Project structure
 

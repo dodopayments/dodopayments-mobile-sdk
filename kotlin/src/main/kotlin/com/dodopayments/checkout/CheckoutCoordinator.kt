@@ -3,7 +3,7 @@ package com.dodopayments.checkout
 import kotlinx.coroutines.CompletableDeferred
 
 /**
- * Process-wide state shared between [DodoCheckout] and [CheckoutActivity].
+ * Process-wide state shared between [DodoCheckout] and [BrowserCheckoutHostActivity].
  *
  * The suspend-style [DodoCheckout.start] parks a deferred here that the
  * activity completes; the launcher-style contract path never uses it (results

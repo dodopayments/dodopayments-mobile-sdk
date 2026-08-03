@@ -11,6 +11,21 @@ import { subscribeToCheckoutEvents } from './events';
  * the webhook.
  */
 
+/**
+ * The outcome of a checkout, read off the `return_url` query string.
+ *
+ * `cancelled` is the odd one out: it means the user dismissed the browser
+ * before any return URL arrived, so the SDK never learned the outcome. **It is
+ * not a decline** — the user may well have paid and closed the sheet while the
+ * hosted "Payment Successful" page counted down its redirect. Don't show a
+ * failure screen for it; call `getAbandonedSession()` and reconcile the
+ * session server-side.
+ *
+ * `pending` is the other non-answer: besides genuinely async methods
+ * (`status=processing`, any `requires_*`), it is the fallback the native cores
+ * use for a missing or unrecognized `status`, so a malformed return URL lands
+ * here too — possibly with no `paymentId` either. Reconcile it the same way.
+ */
 export type CheckoutStatus =
   | 'succeeded'
   | 'failed'
@@ -142,7 +157,17 @@ export const DodoCheckout = {
     }
   },
 
-  /** The session of a checkout the app was killed mid-flow in, or null. */
+  /**
+   * The session of a checkout that ended without a confirmed outcome, or null.
+   *
+   * Set whenever the SDK never saw a return URL it could resolve to a durable
+   * outcome — the app was killed mid-flow, `start` resolved `cancelled`
+   * because the user dismissed the browser, or it resolved `pending`, which is
+   * also the fallback for an unparseable return URL. Check it on launch *and*
+   * after every `cancelled` or `pending` result, reconcile the session
+   * server-side, then call `clearAbandonedSession()` once the outcome is
+   * terminal.
+   */
   async getAbandonedSession(): Promise<AbandonedSession | null> {
     const native = await NativeDodoCheckout.getAbandonedSession();
     if (!native) return null;

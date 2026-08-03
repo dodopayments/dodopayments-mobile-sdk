@@ -1,11 +1,14 @@
 package com.dodopayments.checkout
 
 /**
- * A checkout the app was killed or dismissed in the middle of.
+ * A checkout that ended without the SDK ever seeing its return URL — the app
+ * was killed mid-flow, or the user dismissed the Custom Tab.
  *
- * The SDK cannot know the payment's real outcome after the process dies — the
- * merchant reconciles it server-side (webhook or `payments.retrieve`). This
- * record only tells the app *that* a checkout was interrupted.
+ * The SDK never learns the payment's real outcome in either case: it holds no
+ * API key and reads the result off the return URL, which never arrived. The
+ * merchant reconciles the session server-side (webhook or `payments.retrieve`).
+ * This record only tells the app *that* a checkout was interrupted, and which
+ * session it was.
  */
 data class AbandonedSession(
     val sessionId: String,
@@ -44,6 +47,29 @@ internal class AbandonedSessionStore(private val store: KeyValueStore) {
     fun clear() {
         store.remove(SESSION_KEY)
         store.remove(CREATED_AT_KEY)
+    }
+
+    /**
+     * Clears the record only when the checkout produced a *durable* outcome.
+     *
+     * CANCELLED means the user dismissed the tab before any return URL
+     * arrived, so the SDK learned nothing — the payment may well have
+     * succeeded (dismissing while the hosted "Payment Successful" page counts
+     * down its redirect is indistinguishable, from here, from dismissing
+     * before paying at all). PENDING is the same kind of non-answer: it's also
+     * [ResultParser]'s fallback for a missing or unrecognized `status`, so a
+     * malformed return URL lands here too, with `paymentId` and
+     * `subscriptionId` both potentially null — clearing then would leave no
+     * handle at all, which is worse than the bug this method exists to fix.
+     * An exhaustive `when` rather than a CANCELLED-only guard, so a future
+     * status is a compile error here instead of silently falling through to
+     * "clear".
+     */
+    fun clearIfOutcomeKnown(status: CheckoutStatus) {
+        when (status) {
+            CheckoutStatus.SUCCEEDED, CheckoutStatus.FAILED, CheckoutStatus.EXPIRED -> clear()
+            CheckoutStatus.CANCELLED, CheckoutStatus.PENDING -> Unit
+        }
     }
 
     companion object {

@@ -41,7 +41,15 @@ internal class BrowserCheckoutHostActivity : ComponentActivity() {
                 CheckoutError(
                     CheckoutError.Code.PLATFORM_ERROR,
                     "Checkout was launched without its parameters."
-                )
+                ),
+                // Unlike the launchBrowser() catch below, this instance can be
+                // a fresh recreation reached only by redirectIntent() after the
+                // process died — it never had a checkoutUrl to lose, but an
+                // earlier instance may have already shown a real checkout and
+                // recorded its session. Clearing here would destroy that
+                // record based on this instance's own confusion, not on any
+                // evidence the checkout never displayed.
+                clearsAbandonedSession = false
             )
             return
         }
@@ -101,10 +109,10 @@ internal class BrowserCheckoutHostActivity : ComponentActivity() {
         // reclaim-and-resume destroy would hand the suspend-style caller a
         // premature CANCELLED before the real outcome arrives on the
         // recreated instance, which then has nowhere left to deliver it.
-        // Deliberately NOT cleanUpSession()/deliver() here either — those
-        // clear the abandoned-session record, and this is exactly the
-        // scenario that record exists to survive; the merchant reconciles it
-        // via getAbandonedSession() on next launch.
+        // The abandoned-session record is deliberately left in place, as it is
+        // for every CANCELLED (and PENDING) outcome: this is exactly the
+        // scenario that record exists to survive, and the merchant reconciles
+        // it via getAbandonedSession() on next launch.
         if (!delivered && isFinishing) {
             delivered = true
             CheckoutCoordinator.guard.end()
@@ -164,10 +172,15 @@ internal class BrowserCheckoutHostActivity : ComponentActivity() {
         if (result.status != CheckoutStatus.CANCELLED) {
             CheckoutCoordinator.emit(CheckoutEvent.ReturnReceived)
         }
-        cleanUpSession()
-        // Same ordering as CheckoutActivity: emit Closed before completing the
-        // deferred, since completion can resume the awaiting caller
-        // synchronously and its `finally` nulls `onEvent`.
+        // Kept on CANCELLED and PENDING — see clearIfOutcomeKnown. Those are
+        // the outcomes the SDK cannot fully vouch for, and the ones the
+        // merchant still has to reconcile.
+        AbandonedSessionStore(SharedPreferencesKeyValueStore(this))
+            .clearIfOutcomeKnown(result.status)
+        CheckoutCoordinator.guard.end()
+        // Emit Closed before completing the deferred, since completion can
+        // resume the awaiting caller synchronously and its `finally` nulls
+        // `onEvent`.
         CheckoutCoordinator.emit(CheckoutEvent.Closed)
         // Carries the result back to the launcher-style contract path via
         // onActivityResult; the suspend-style path below ignores this and
@@ -177,19 +190,20 @@ internal class BrowserCheckoutHostActivity : ComponentActivity() {
         finish()
     }
 
-    private fun failWith(error: CheckoutError) {
+    private fun failWith(error: CheckoutError, clearsAbandonedSession: Boolean = true) {
         if (delivered) return
         delivered = true
-        cleanUpSession()
+        // Only the no-browser-installed path (launchBrowser's catch) can prove
+        // the checkout page never loaded, so only that call site clears here by
+        // default. The missing-parameters path opts out — see its call site.
+        if (clearsAbandonedSession) {
+            AbandonedSessionStore(SharedPreferencesKeyValueStore(this)).clear()
+        }
+        CheckoutCoordinator.guard.end()
         CheckoutCoordinator.emit(CheckoutEvent.Closed)
         setResult(Activity.RESULT_OK, ResultCodec.encodeError(error))
         CheckoutCoordinator.pendingResult?.completeExceptionally(error)
         finish()
-    }
-
-    private fun cleanUpSession() {
-        AbandonedSessionStore(SharedPreferencesKeyValueStore(this)).clear()
-        CheckoutCoordinator.guard.end()
     }
 
     companion object {

@@ -19,13 +19,31 @@ enum class CheckoutStatus {
     /** The payment was declined (`status=failed`). */
     FAILED,
 
-    /** The user closed the checkout before the return fired. */
+    /**
+     * The user dismissed the checkout before any return URL arrived.
+     *
+     * **This is not a decline — do not show a failure screen for it.** The SDK
+     * only ever learns the outcome from the return URL, so a dismissal leaves
+     * the payment's real state unknown. The user may well have paid: closing
+     * the tab while the hosted "Payment Successful" page counts down its
+     * redirect produces exactly this status.
+     *
+     * Call [DodoCheckout.getAbandonedSession] for the `cks_…` session id,
+     * reconcile it server-side, and show the outcome that comes back.
+     */
     CANCELLED,
 
     /**
      * The payment will settle later — bank transfers and other async methods
      * (`status=processing` or any `requires_*`). The webhook delivers the
      * final outcome.
+     *
+     * This is also [ResultParser]'s fallback for a missing or unrecognized
+     * `status`, so an unparseable return URL lands here too — possibly with
+     * no [CheckoutResult.paymentId] or [CheckoutResult.subscriptionId] either.
+     * Treat it like [CANCELLED]: the outcome is not settled, so call
+     * [DodoCheckout.getAbandonedSession] and reconcile the session server-side
+     * rather than showing a terminal screen.
      */
     PENDING,
 

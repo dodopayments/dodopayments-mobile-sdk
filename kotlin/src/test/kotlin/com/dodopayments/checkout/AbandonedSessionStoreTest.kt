@@ -45,6 +45,45 @@ class AbandonedSessionStoreTest {
         assertNull(subject.current())
     }
 
+    /**
+     * The reported bug: pay, then tap the tab's ✕ while the hosted success page
+     * is still counting down its redirect. The SDK reports CANCELLED because it
+     * never saw the return URL, so the session must stay on record — that id is
+     * the merchant's only handle for reconciling a payment that did go through.
+     */
+    @Test
+    fun cancelledKeepsSessionForReconciliation() {
+        val subject = AbandonedSessionStore(FakeKeyValueStore())
+        subject.record("https://checkout.dodopayments.com/session/cks_xyz")
+        subject.clearIfOutcomeKnown(CheckoutStatus.CANCELLED)
+        assertEquals("cks_xyz", subject.current()?.sessionId)
+    }
+
+    /**
+     * PENDING is [ResultParser]'s fallback for a missing or unrecognized
+     * `status`, so a malformed return URL lands here — with `paymentId` and
+     * `subscriptionId` both potentially null. Clearing would leave no handle
+     * at all, worse than the CANCELLED case above.
+     */
+    @Test
+    fun pendingKeepsSessionForReconciliation() {
+        val subject = AbandonedSessionStore(FakeKeyValueStore())
+        subject.record("https://checkout.dodopayments.com/session/cks_xyz")
+        subject.clearIfOutcomeKnown(CheckoutStatus.PENDING)
+        assertEquals("cks_xyz", subject.current()?.sessionId)
+    }
+
+    @Test
+    fun resolvedOutcomesClearSession() {
+        val nonDurable = setOf(CheckoutStatus.CANCELLED, CheckoutStatus.PENDING)
+        for (status in CheckoutStatus.entries - nonDurable) {
+            val subject = AbandonedSessionStore(FakeKeyValueStore())
+            subject.record("https://checkout.dodopayments.com/session/cks_xyz")
+            subject.clearIfOutcomeKnown(status)
+            assertNull("$status should clear the record", subject.current())
+        }
+    }
+
     @Test
     fun noSessionReturnsNull() {
         assertNull(AbandonedSessionStore(FakeKeyValueStore()).current())
