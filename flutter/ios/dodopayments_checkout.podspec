@@ -16,7 +16,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'dodopayments_checkout'
-  s.version          = '1.0.2'
+  s.version          = '1.0.3'
   s.summary          = "Dodo Payments hosted checkout in a system browser tab."
   s.description      = <<-DESC
 Thin Flutter bridge to the Dodo Payments iOS checkout core. Opens the hosted
