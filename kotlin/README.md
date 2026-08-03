@@ -7,7 +7,7 @@ and get a clean result from one call.
 
 ```kotlin
 dependencies {
-    implementation("com.dodopayments.api:checkout-android:1.0.1")
+    implementation("com.dodopayments.api:checkout-android:1.0.2")
 }
 ```
 
