@@ -50,21 +50,26 @@ internal class AbandonedSessionStore(private val store: KeyValueStore) {
     }
 
     /**
-     * Clears the record only when the checkout produced a *known* outcome.
+     * Clears the record only when the checkout produced a *durable* outcome.
      *
-     * Every status except [CheckoutStatus.CANCELLED] was parsed off the return
-     * URL, so the caller already has the real outcome and there is nothing left
-     * to reconcile. CANCELLED is the opposite: it means the user dismissed the
-     * tab before any return URL arrived, so the SDK learned nothing. The
-     * payment may well have succeeded — dismissing the tab while the hosted
-     * "Payment Successful" page counts down its redirect is indistinguishable,
-     * from here, from dismissing it before paying at all. Keeping the record is
-     * what lets the merchant resolve that ambiguity server-side instead of
-     * guessing (and showing a false failure screen).
+     * CANCELLED means the user dismissed the tab before any return URL
+     * arrived, so the SDK learned nothing — the payment may well have
+     * succeeded (dismissing while the hosted "Payment Successful" page counts
+     * down its redirect is indistinguishable, from here, from dismissing
+     * before paying at all). PENDING is the same kind of non-answer: it's also
+     * [ResultParser]'s fallback for a missing or unrecognized `status`, so a
+     * malformed return URL lands here too, with `paymentId` and
+     * `subscriptionId` both potentially null — clearing then would leave no
+     * handle at all, which is worse than the bug this method exists to fix.
+     * An exhaustive `when` rather than a CANCELLED-only guard, so a future
+     * status is a compile error here instead of silently falling through to
+     * "clear".
      */
     fun clearIfOutcomeKnown(status: CheckoutStatus) {
-        if (status == CheckoutStatus.CANCELLED) return
-        clear()
+        when (status) {
+            CheckoutStatus.SUCCEEDED, CheckoutStatus.FAILED, CheckoutStatus.EXPIRED -> clear()
+            CheckoutStatus.CANCELLED, CheckoutStatus.PENDING -> Unit
+        }
     }
 
     companion object {

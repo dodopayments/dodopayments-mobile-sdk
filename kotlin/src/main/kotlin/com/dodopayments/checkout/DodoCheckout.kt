@@ -107,9 +107,11 @@ object DodoCheckout {
      *
      * Set whenever the SDK never saw the return URL — the app was killed
      * mid-flow, or the result came back [CheckoutStatus.CANCELLED] because the
-     * user dismissed the tab. Check it on launch *and* after every CANCELLED
-     * result, reconcile the session server-side, then call
-     * [clearAbandonedSession].
+     * user dismissed the tab. Also set for [CheckoutStatus.PENDING], since
+     * that status can itself mean an unparseable return URL rather than a
+     * genuinely async payment method. Check it on launch *and* after every
+     * CANCELLED or PENDING result, reconcile the session server-side, then
+     * call [clearAbandonedSession].
      */
     fun getAbandonedSession(context: Context): AbandonedSession? =
         AbandonedSessionStore(SharedPreferencesKeyValueStore(context)).current()

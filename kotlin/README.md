@@ -121,9 +121,11 @@ Resolve it instead: the SDK keeps the session on record for exactly this case.
 
 ## Abandoned sessions
 
-A session stays on record whenever the SDK never saw the return URL — the app
-was killed mid-checkout, or the result came back `CANCELLED`. Reconcile it
-server-side, both on next launch and right after a `CANCELLED` result:
+A session stays on record whenever the SDK never saw a return URL it could
+resolve to a durable outcome — the app was killed mid-checkout, the result
+came back `CANCELLED`, or it came back `PENDING` from an unparseable return
+URL rather than a genuinely async payment method. Reconcile it server-side,
+both on next launch and right after a `CANCELLED` or `PENDING` result:
 
 ```kotlin
 import com.dodopayments.checkout.DodoCheckout
@@ -137,9 +139,13 @@ suspend fun reconcileAbandonedSession() {
     // Ask *your* backend what happened to abandoned.sessionId — it has the
     // webhook (`payment.succeeded`) or can call Get Payment Detail with your
     // secret key. Show a spinner while you wait; an async method may still be
-    // settling, so treat "no record yet" as pending, not failed.
+    // settling, so treat "no record yet" as pending, not failed — and only
+    // clear the record once you have a terminal outcome, or a later retry
+    // has nothing left to reconcile against if this one comes back.
     val outcome = myBackend.outcomeForSession(abandoned.sessionId)
-    DodoCheckout.clearAbandonedSession(context)
+    if (outcome.isTerminal) {
+        DodoCheckout.clearAbandonedSession(context)
+    }
     show(outcome)
 }
 ```

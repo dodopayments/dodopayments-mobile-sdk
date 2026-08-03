@@ -28,8 +28,8 @@ internal class CheckoutContract : ActivityResultContract<CheckoutParams, Checkou
     override fun parseResult(resultCode: Int, intent: Intent?): CheckoutResult {
         if (resultCode != Activity.RESULT_OK || intent == null) {
             // The activity never delivered a result (e.g. it failed to launch), so
-            // it never ran cleanUpSession() to free the guard. Release it here to
-            // avoid a permanent ALREADY_IN_PROGRESS lock on this launcher path.
+            // it never freed the guard itself. Release it here to avoid a
+            // permanent ALREADY_IN_PROGRESS lock on this launcher path.
             // (A normal cancel/success returns RESULT_OK and the activity already
             // freed the guard, so this branch cannot clobber a live checkout.)
             CheckoutCoordinator.guard.end()
