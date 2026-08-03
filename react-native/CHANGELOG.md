@@ -1,21 +1,14 @@
 # Changelog
 
-## Unreleased
+## 1.1.1
 
-- Docs: `cancelled` means the outcome is *unknown*, not declined -- the user may
-  have paid and dismissed the browser before the return URL fired. README now
-  carries a worked `reconcileAbandonedSession()` example instead of an example
-  `switch` that treated `cancelled` as a dead end.
-- Docs: `pending` is the same kind of non-answer -- besides genuinely async
-  methods, it is the native cores' fallback for a missing or unrecognized
-  `status`, so a malformed return URL lands there too. It is documented and
-  reconciled alongside `cancelled`.
-- Docs: the worked example only clears the record once the backend reports a
-  terminal outcome; clearing on a still-settling one leaves a later retry with
-  nothing to reconcile against.
-- The behavioral half of this fix arrives when the native cores are bumped:
-  `com.dodopayments.api:checkout-android` 1.0.2 and the Swift core's v1.0.1
-  (re-vendored from the `swift/` submodule at release time).
+- Bump `com.dodopayments.api:checkout-android` to 1.0.2 and re-vendor the
+  Swift core at v1.0.1: a `CANCELLED`/`PENDING` result no longer wipes the
+  abandoned-session record, so `getAbandonedSession()` can be reconciled
+  after a dismissed or unparseable checkout instead of returning `null`.
+- README's `reconcileAbandonedSession()` example now reconciles `pending`
+  alongside `cancelled`, and only clears the record once the backend
+  reports a terminal outcome.
 
 ## 1.1.0
 
