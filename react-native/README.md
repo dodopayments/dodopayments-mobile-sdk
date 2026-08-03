@@ -87,7 +87,7 @@ switch (result.status) {
   case 'succeeded': /* UI only — confirm server-side */ break;
   case 'failed':    break;
   case 'cancelled': await reconcileAbandonedSession(); break; // outcome unknown — NOT a failure
-  case 'pending':   break; // settles later; webhook is authority
+  case 'pending':   await reconcileAbandonedSession(); break; // may be unparsed, not just async
   case 'expired':   break;
 }
 ```
@@ -120,10 +120,12 @@ Resolve it instead: the SDK keeps the session on record for exactly this case.
 
 ## Abandoned sessions
 
-A session stays on record whenever the SDK never saw the return URL — the app
-(or the JS bundle) was killed mid-checkout and the promise was lost, or `start`
-resolved `cancelled`. Reconcile it server-side, both on next mount and right
-after a `cancelled` result:
+A session stays on record whenever the SDK never saw a return URL it could
+resolve to a durable outcome — the app (or the JS bundle) was killed
+mid-checkout and the promise was lost, `start` resolved `cancelled`, or it
+resolved `pending` from an unparseable return URL rather than a genuinely async
+payment method. Reconcile it server-side, both on next mount and right after a
+`cancelled` or `pending` result:
 
 ```ts
 import { DodoCheckout } from '@dodopayments/react-native-checkout';
@@ -135,9 +137,13 @@ async function reconcileAbandonedSession() {
   // Ask *your* backend what happened to abandoned.sessionId — it has the
   // webhook (`payment.succeeded`) or can call Get Payment Detail with your
   // secret key. Show a spinner while you wait; an async method may still be
-  // settling, so treat "no record yet" as pending, not failed.
+  // settling, so treat "no record yet" as pending, not failed — and only
+  // clear the record once you have a terminal outcome, or a later retry
+  // has nothing left to reconcile against if this one comes back.
   const outcome = await myBackend.outcomeForSession(abandoned.sessionId);
-  await DodoCheckout.clearAbandonedSession();
+  if (outcome.isTerminal) {
+    await DodoCheckout.clearAbandonedSession();
+  }
   show(outcome);
 }
 ```

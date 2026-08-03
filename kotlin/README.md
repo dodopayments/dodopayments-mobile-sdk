@@ -52,7 +52,7 @@ private val checkoutLauncher =
             CheckoutStatus.SUCCEEDED -> showSuccess(result.paymentId) // UI only — confirm server-side
             CheckoutStatus.FAILED -> showFailure()
             CheckoutStatus.CANCELLED -> reconcileAbandonedSession()  // outcome unknown — NOT a failure
-            CheckoutStatus.PENDING -> showPending()                   // settles later; webhook is authority
+            CheckoutStatus.PENDING -> reconcileAbandonedSession()   // may be unparsed, not just async
             CheckoutStatus.EXPIRED -> showExpired()
         }
     }
@@ -85,7 +85,7 @@ lifecycleScope.launch {
         CheckoutStatus.SUCCEEDED -> showSuccess(result.paymentId) // UI only — confirm server-side
         CheckoutStatus.FAILED -> showFailure()
         CheckoutStatus.CANCELLED -> reconcileAbandonedSession()  // outcome unknown — NOT a failure
-        CheckoutStatus.PENDING -> showPending()                   // settles later; webhook is authority
+        CheckoutStatus.PENDING -> reconcileAbandonedSession()   // may be unparsed, not just async
         CheckoutStatus.EXPIRED -> showExpired()
     }
 }

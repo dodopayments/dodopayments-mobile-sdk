@@ -80,6 +80,12 @@ enum CheckoutStatus {
 
   /// The payment will settle later — bank transfers and other async methods.
   /// The webhook delivers the final outcome.
+  ///
+  /// This is also the fallback for a missing or unrecognized `status`, so an
+  /// unparseable return URL lands here too — possibly with no `paymentId` or
+  /// `subscriptionId` either. Treat it like [cancelled]: the outcome is not
+  /// settled, so call [DodoCheckout.getAbandonedSession] and reconcile the
+  /// session server-side rather than showing a terminal screen.
   pending,
 
   /// The checkout session expired before completion.

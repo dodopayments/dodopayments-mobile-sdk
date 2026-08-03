@@ -67,7 +67,7 @@ switch (result.status) {
   case CheckoutStatus.succeeded: showSuccess(result.paymentId); // UI only — confirm server-side
   case CheckoutStatus.failed:    showFailure();
   case CheckoutStatus.cancelled: await reconcileAbandonedSession(); // outcome unknown — NOT a failure
-  case CheckoutStatus.pending:   showPending();  // settles later; webhook is authority
+  case CheckoutStatus.pending:   await reconcileAbandonedSession(); // may be unparsed, not just async
   case CheckoutStatus.expired:   showExpired();
 }
 ```
@@ -109,10 +109,12 @@ Resolve it instead: the SDK keeps the session on record for exactly this case.
 
 ## Abandoned sessions
 
-A session stays on record whenever the SDK never saw the return URL — the app
-was killed mid-checkout, or `start` completed with `CheckoutStatus.cancelled`.
-Reconcile it server-side, both on next launch and right after a `cancelled`
-result:
+A session stays on record whenever the SDK never saw a return URL it could
+resolve to a durable outcome — the app was killed mid-checkout, `start`
+completed with `CheckoutStatus.cancelled`, or it completed with
+`CheckoutStatus.pending` from an unparseable return URL rather than a genuinely
+async payment method. Reconcile it server-side, both on next launch and right
+after a `cancelled` or `pending` result:
 
 ```dart
 import 'package:dodopayments_checkout/dodopayments_checkout.dart';
@@ -126,9 +128,13 @@ Future<void> reconcileAbandonedSession() async {
   // Ask *your* backend what happened to abandoned.sessionId — it has the
   // webhook (`payment.succeeded`) or can call Get Payment Detail with your
   // secret key. Show a spinner while you wait; an async method may still be
-  // settling, so treat "no record yet" as pending, not failed.
+  // settling, so treat "no record yet" as pending, not failed — and only
+  // clear the record once you have a terminal outcome, or a later retry
+  // has nothing left to reconcile against if this one comes back.
   final outcome = await myBackend.outcomeForSession(abandoned.sessionId);
-  await DodoCheckout.instance.clearAbandonedSession();
+  if (outcome.isTerminal) {
+    await DodoCheckout.instance.clearAbandonedSession();
+  }
   show(outcome);
 }
 ```

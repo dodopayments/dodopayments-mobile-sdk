@@ -37,6 +37,13 @@ enum class CheckoutStatus {
      * The payment will settle later — bank transfers and other async methods
      * (`status=processing` or any `requires_*`). The webhook delivers the
      * final outcome.
+     *
+     * This is also [ResultParser]'s fallback for a missing or unrecognized
+     * `status`, so an unparseable return URL lands here too — possibly with
+     * no [CheckoutResult.paymentId] or [CheckoutResult.subscriptionId] either.
+     * Treat it like [CANCELLED]: the outcome is not settled, so call
+     * [DodoCheckout.getAbandonedSession] and reconcile the session server-side
+     * rather than showing a terminal screen.
      */
     PENDING,
 

@@ -84,9 +84,16 @@ class DodoCheckout {
     }
   }
 
-  /// The session of a checkout the app was killed or dismissed in the middle
-  /// of, or `null`. Check this on launch and reconcile server-side, then call
-  /// [clearAbandonedSession].
+  /// The session of a checkout that ended without a confirmed outcome, or
+  /// `null`.
+  ///
+  /// Set whenever the SDK never saw a return URL it could resolve to a durable
+  /// outcome — the app was killed mid-flow, `start` completed with
+  /// [CheckoutStatus.cancelled] because the user dismissed the browser, or it
+  /// completed with [CheckoutStatus.pending], which is also the fallback for
+  /// an unparseable return URL. Check this on launch *and* after every
+  /// `cancelled` or `pending` result, reconcile the session server-side, then
+  /// call [clearAbandonedSession] once the outcome is terminal.
   Future<AbandonedSession?> getAbandonedSession() async {
     final NativeAbandonedSession? native = await _api.getAbandonedSession();
     if (native == null) return null;
