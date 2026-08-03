@@ -10,7 +10,7 @@ plugins {
 // hosts dodo-payments-java and dodo-payments-kotlin). The bare com.dodopayments
 // namespace is not registered, and Central rejects deployments to it.
 group = "com.dodopayments.api"
-version = "1.0.1"
+version = "1.0.2"
 
 android {
     namespace = "com.dodopayments.checkout"

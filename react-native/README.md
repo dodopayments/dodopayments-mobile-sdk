@@ -86,7 +86,7 @@ const result = await DodoCheckout.start({
 switch (result.status) {
   case 'succeeded': /* UI only — confirm server-side */ break;
   case 'failed':    break;
-  case 'cancelled': break;
+  case 'cancelled': await reconcileAbandonedSession(); break; // outcome unknown — NOT a failure
   case 'pending':   break; // settles later; webhook is authority
   case 'expired':   break;
 }
@@ -107,18 +107,38 @@ Confirm every payment from your backend, not from the mobile result:
 - **Verification API**: look up `paymentId` with your secret key via
   [Get Payment Detail](https://docs.dodopayments.com/api-reference/payments/get-payments-1).
 
+## `cancelled` is not a failure
+
+`cancelled` means the user dismissed the browser before any return URL arrived,
+so the SDK never learned the outcome. **The payment may have gone through.** A
+user who pays and then taps ✕ while the hosted "Payment Successful" page counts
+down its redirect produces `cancelled`, and is indistinguishable, from the
+SDK's side, from a user who closed the browser without paying.
+
+Showing "Payment failed" here tells a paying customer their money vanished.
+Resolve it instead: the SDK keeps the session on record for exactly this case.
+
 ## Abandoned sessions
 
-If the app (or the JS bundle) is killed mid-checkout the promise is lost, but
-the native layer keeps the session. Recover it on next mount:
+A session stays on record whenever the SDK never saw the return URL — the app
+(or the JS bundle) was killed mid-checkout and the promise was lost, or `start`
+resolved `cancelled`. Reconcile it server-side, both on next mount and right
+after a `cancelled` result:
 
 ```ts
 import { DodoCheckout } from '@dodopayments/react-native-checkout';
 
-const abandoned = await DodoCheckout.getAbandonedSession();
-if (abandoned) {
-  // reconcile abandoned.sessionId server-side, then:
+async function reconcileAbandonedSession() {
+  const abandoned = await DodoCheckout.getAbandonedSession();
+  if (!abandoned) return; // nothing in flight
+
+  // Ask *your* backend what happened to abandoned.sessionId — it has the
+  // webhook (`payment.succeeded`) or can call Get Payment Detail with your
+  // secret key. Show a spinner while you wait; an async method may still be
+  // settling, so treat "no record yet" as pending, not failed.
+  const outcome = await myBackend.outcomeForSession(abandoned.sessionId);
   await DodoCheckout.clearAbandonedSession();
+  show(outcome);
 }
 ```
 

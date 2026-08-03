@@ -45,6 +45,30 @@ class AbandonedSessionStoreTest {
         assertNull(subject.current())
     }
 
+    /**
+     * The reported bug: pay, then tap the tab's ✕ while the hosted success page
+     * is still counting down its redirect. The SDK reports CANCELLED because it
+     * never saw the return URL, so the session must stay on record — that id is
+     * the merchant's only handle for reconciling a payment that did go through.
+     */
+    @Test
+    fun cancelledKeepsSessionForReconciliation() {
+        val subject = AbandonedSessionStore(FakeKeyValueStore())
+        subject.record("https://checkout.dodopayments.com/session/cks_xyz")
+        subject.clearIfOutcomeKnown(CheckoutStatus.CANCELLED)
+        assertEquals("cks_xyz", subject.current()?.sessionId)
+    }
+
+    @Test
+    fun resolvedOutcomesClearSession() {
+        for (status in CheckoutStatus.entries - CheckoutStatus.CANCELLED) {
+            val subject = AbandonedSessionStore(FakeKeyValueStore())
+            subject.record("https://checkout.dodopayments.com/session/cks_xyz")
+            subject.clearIfOutcomeKnown(status)
+            assertNull("$status should clear the record", subject.current())
+        }
+    }
+
     @Test
     fun noSessionReturnsNull() {
         assertNull(AbandonedSessionStore(FakeKeyValueStore()).current())

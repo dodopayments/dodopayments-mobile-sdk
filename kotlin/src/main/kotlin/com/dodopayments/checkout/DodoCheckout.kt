@@ -102,8 +102,14 @@ object DodoCheckout {
     fun contract(): ActivityResultContract<CheckoutParams, CheckoutResult> = CheckoutContract()
 
     /**
-     * The session of a checkout the app was killed or dismissed in the middle
-     * of, or `null`. Check this on launch and reconcile server-side.
+     * The session of a checkout that ended without a confirmed outcome, or
+     * `null`.
+     *
+     * Set whenever the SDK never saw the return URL — the app was killed
+     * mid-flow, or the result came back [CheckoutStatus.CANCELLED] because the
+     * user dismissed the tab. Check it on launch *and* after every CANCELLED
+     * result, reconcile the session server-side, then call
+     * [clearAbandonedSession].
      */
     fun getAbandonedSession(context: Context): AbandonedSession? =
         AbandonedSessionStore(SharedPreferencesKeyValueStore(context)).current()

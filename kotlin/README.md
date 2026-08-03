@@ -51,7 +51,7 @@ private val checkoutLauncher =
         when (result.status) {
             CheckoutStatus.SUCCEEDED -> showSuccess(result.paymentId) // UI only — confirm server-side
             CheckoutStatus.FAILED -> showFailure()
-            CheckoutStatus.CANCELLED -> dismiss()
+            CheckoutStatus.CANCELLED -> reconcileAbandonedSession()  // outcome unknown — NOT a failure
             CheckoutStatus.PENDING -> showPending()                   // settles later; webhook is authority
             CheckoutStatus.EXPIRED -> showExpired()
         }
@@ -84,7 +84,7 @@ lifecycleScope.launch {
     when (result.status) {
         CheckoutStatus.SUCCEEDED -> showSuccess(result.paymentId) // UI only — confirm server-side
         CheckoutStatus.FAILED -> showFailure()
-        CheckoutStatus.CANCELLED -> dismiss()
+        CheckoutStatus.CANCELLED -> reconcileAbandonedSession()  // outcome unknown — NOT a failure
         CheckoutStatus.PENDING -> showPending()                   // settles later; webhook is authority
         CheckoutStatus.EXPIRED -> showExpired()
     }
@@ -108,17 +108,39 @@ Confirm every payment from your backend, not from the mobile result:
 - **Verification API**: look up `paymentId` with your secret key via
   [Get Payment Detail](https://docs.dodopayments.com/api-reference/payments/get-payments-1).
 
+## `CANCELLED` is not a failure
+
+`CANCELLED` means the user dismissed the tab before any return URL arrived, so
+the SDK never learned the outcome. **The payment may have gone through.** A
+user who pays and then taps ✕ while the hosted "Payment Successful" page counts
+down its redirect produces `CANCELLED`, and is indistinguishable, from the
+SDK's side, from a user who closed the tab without paying.
+
+Showing "Payment failed" here tells a paying customer their money vanished.
+Resolve it instead: the SDK keeps the session on record for exactly this case.
+
 ## Abandoned sessions
 
-If the app is killed mid-checkout, recover the interrupted session on next
-launch and reconcile it server-side:
+A session stays on record whenever the SDK never saw the return URL — the app
+was killed mid-checkout, or the result came back `CANCELLED`. Reconcile it
+server-side, both on next launch and right after a `CANCELLED` result:
 
 ```kotlin
 import com.dodopayments.checkout.DodoCheckout
 
-DodoCheckout.getAbandonedSession(context)?.let { abandoned ->
-    // reconcile abandoned.sessionId with your backend, then:
+suspend fun reconcileAbandonedSession() {
+    val abandoned = DodoCheckout.getAbandonedSession(context)
+    if (abandoned == null) {
+        dismiss()   // nothing in flight
+        return
+    }
+    // Ask *your* backend what happened to abandoned.sessionId — it has the
+    // webhook (`payment.succeeded`) or can call Get Payment Detail with your
+    // secret key. Show a spinner while you wait; an async method may still be
+    // settling, so treat "no record yet" as pending, not failed.
+    val outcome = myBackend.outcomeForSession(abandoned.sessionId)
     DodoCheckout.clearAbandonedSession(context)
+    show(outcome)
 }
 ```
 

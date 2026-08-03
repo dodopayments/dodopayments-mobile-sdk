@@ -101,10 +101,10 @@ internal class BrowserCheckoutHostActivity : ComponentActivity() {
         // reclaim-and-resume destroy would hand the suspend-style caller a
         // premature CANCELLED before the real outcome arrives on the
         // recreated instance, which then has nowhere left to deliver it.
-        // Deliberately NOT cleanUpSession()/deliver() here either — those
-        // clear the abandoned-session record, and this is exactly the
-        // scenario that record exists to survive; the merchant reconciles it
-        // via getAbandonedSession() on next launch.
+        // The abandoned-session record is deliberately left in place, as it is
+        // for every CANCELLED outcome: this is exactly the scenario that record
+        // exists to survive, and the merchant reconciles it via
+        // getAbandonedSession() on next launch.
         if (!delivered && isFinishing) {
             delivered = true
             CheckoutCoordinator.guard.end()
@@ -164,7 +164,12 @@ internal class BrowserCheckoutHostActivity : ComponentActivity() {
         if (result.status != CheckoutStatus.CANCELLED) {
             CheckoutCoordinator.emit(CheckoutEvent.ReturnReceived)
         }
-        cleanUpSession()
+        // Kept on CANCELLED — see clearIfOutcomeKnown. That is the one outcome
+        // the SDK cannot vouch for, and the only one the merchant still has to
+        // reconcile.
+        AbandonedSessionStore(SharedPreferencesKeyValueStore(this))
+            .clearIfOutcomeKnown(result.status)
+        CheckoutCoordinator.guard.end()
         // Same ordering as CheckoutActivity: emit Closed before completing the
         // deferred, since completion can resume the awaiting caller
         // synchronously and its `finally` nulls `onEvent`.
@@ -180,16 +185,16 @@ internal class BrowserCheckoutHostActivity : ComponentActivity() {
     private fun failWith(error: CheckoutError) {
         if (delivered) return
         delivered = true
-        cleanUpSession()
+        // Cleared unconditionally, unlike deliver(): every failWith path fires
+        // before the Custom Tab is on screen (missing parameters, no browser
+        // installed), so the checkout page never loaded and there is no payment
+        // to reconcile. Leaving a record here would be a phantom.
+        AbandonedSessionStore(SharedPreferencesKeyValueStore(this)).clear()
+        CheckoutCoordinator.guard.end()
         CheckoutCoordinator.emit(CheckoutEvent.Closed)
         setResult(Activity.RESULT_OK, ResultCodec.encodeError(error))
         CheckoutCoordinator.pendingResult?.completeExceptionally(error)
         finish()
-    }
-
-    private fun cleanUpSession() {
-        AbandonedSessionStore(SharedPreferencesKeyValueStore(this)).clear()
-        CheckoutCoordinator.guard.end()
     }
 
     companion object {

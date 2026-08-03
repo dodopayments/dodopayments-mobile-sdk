@@ -11,6 +11,16 @@ import { subscribeToCheckoutEvents } from './events';
  * the webhook.
  */
 
+/**
+ * The outcome of a checkout, read off the `return_url` query string.
+ *
+ * `cancelled` is the odd one out: it means the user dismissed the browser
+ * before any return URL arrived, so the SDK never learned the outcome. **It is
+ * not a decline** — the user may well have paid and closed the sheet while the
+ * hosted "Payment Successful" page counted down its redirect. Don't show a
+ * failure screen for it; call `getAbandonedSession()` and reconcile the
+ * session server-side.
+ */
 export type CheckoutStatus =
   | 'succeeded'
   | 'failed'
@@ -142,7 +152,14 @@ export const DodoCheckout = {
     }
   },
 
-  /** The session of a checkout the app was killed mid-flow in, or null. */
+  /**
+   * The session of a checkout that ended without a confirmed outcome, or null.
+   *
+   * Set whenever the SDK never saw the return URL — the app was killed
+   * mid-flow, or `start` resolved `cancelled` because the user dismissed the
+   * browser. Check it on launch *and* after every `cancelled` result,
+   * reconcile the session server-side, then call `clearAbandonedSession()`.
+   */
   async getAbandonedSession(): Promise<AbandonedSession | null> {
     const native = await NativeDodoCheckout.getAbandonedSession();
     if (!native) return null;

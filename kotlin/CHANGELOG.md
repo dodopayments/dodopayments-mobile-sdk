@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.2
+
+- Fix: a `CANCELLED` result no longer wipes the abandoned-session record.
+  Dismissing the Custom Tab is the one outcome the SDK cannot vouch for -- no
+  return URL arrived, so the payment may well have succeeded (e.g. tapping the
+  close button while the hosted success page counts down its redirect). The
+  `cks_...` session id now survives, so `getAbandonedSession()` returns it and
+  the merchant can reconcile server-side instead of guessing. Statuses parsed
+  off the return URL still clear the record as before, and pre-presentation
+  failures still clear it so no phantom session is left behind.
+- No API change: the five statuses and their triggers are untouched.
+
 ## 1.0.1
 
 - Downgrade `androidx.activity`/`androidx.browser` to versions that don't

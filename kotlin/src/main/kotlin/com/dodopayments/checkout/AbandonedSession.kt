@@ -1,11 +1,14 @@
 package com.dodopayments.checkout
 
 /**
- * A checkout the app was killed or dismissed in the middle of.
+ * A checkout that ended without the SDK ever seeing its return URL — the app
+ * was killed mid-flow, or the user dismissed the Custom Tab.
  *
- * The SDK cannot know the payment's real outcome after the process dies — the
- * merchant reconciles it server-side (webhook or `payments.retrieve`). This
- * record only tells the app *that* a checkout was interrupted.
+ * The SDK never learns the payment's real outcome in either case: it holds no
+ * API key and reads the result off the return URL, which never arrived. The
+ * merchant reconciles the session server-side (webhook or `payments.retrieve`).
+ * This record only tells the app *that* a checkout was interrupted, and which
+ * session it was.
  */
 data class AbandonedSession(
     val sessionId: String,
@@ -44,6 +47,24 @@ internal class AbandonedSessionStore(private val store: KeyValueStore) {
     fun clear() {
         store.remove(SESSION_KEY)
         store.remove(CREATED_AT_KEY)
+    }
+
+    /**
+     * Clears the record only when the checkout produced a *known* outcome.
+     *
+     * Every status except [CheckoutStatus.CANCELLED] was parsed off the return
+     * URL, so the caller already has the real outcome and there is nothing left
+     * to reconcile. CANCELLED is the opposite: it means the user dismissed the
+     * tab before any return URL arrived, so the SDK learned nothing. The
+     * payment may well have succeeded — dismissing the tab while the hosted
+     * "Payment Successful" page counts down its redirect is indistinguishable,
+     * from here, from dismissing it before paying at all. Keeping the record is
+     * what lets the merchant resolve that ambiguity server-side instead of
+     * guessing (and showing a false failure screen).
+     */
+    fun clearIfOutcomeKnown(status: CheckoutStatus) {
+        if (status == CheckoutStatus.CANCELLED) return
+        clear()
     }
 
     companion object {
