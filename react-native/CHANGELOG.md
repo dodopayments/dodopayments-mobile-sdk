@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.2
+
+- Re-vendor the Swift core at v1.0.2: swiping down to dismiss the checkout
+  sheet left `start`'s continuation unresumed, since
+  `safariViewControllerDidFinish` only fires for the "Done" button tap, not
+  the interactive swipe-to-dismiss on a `.pageSheet`. The `closed` event now
+  fires for both.
+
 ## 1.1.1
 
 - Bump `com.dodopayments.api:checkout-android` to 1.0.2 and re-vendor the
