@@ -2,12 +2,11 @@
 
 ## 1.0.4
 
-- Fixes swipe-to-dismiss on iOS: dismissing the checkout sheet by swiping
-  down (rather than tapping "Done") left the `Future` returned by `start()`
-  uncompleted forever, and left the SDK stuck such that every later
-  `start()` call threw `ALREADY_IN_PROGRESS` until the app restarted. It now
-  completes with `cancelled` and emits the `closed` event, same as the
-  "Done" button.
+- Fix: swiping down to dismiss the checkout sheet left `start()`'s `Future`
+  uncompleted, which also kept the in-progress guard set — every later
+  `start()` call threw `ALREADY_IN_PROGRESS` until app restart. Re-vendors
+  the Swift core at v1.0.2, which completes the `Future` with `cancelled`
+  on swipe-dismiss too, same as the Done button.
 
 ## 1.0.3
 
