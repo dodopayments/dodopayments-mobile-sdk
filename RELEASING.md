@@ -91,9 +91,9 @@ git add swift                 # stages the new pinned commit
 git commit -m "..."           # a normal commit in this repo
 ```
 
-**Current state:** `dodopayments-mobile-sdk-ios` already has `v1.0.0`. The
-Swift package has no version field of its own — SPM versions come purely from
-tags on the satellite repo. Releasing means tagging
+**Current state:** `dodopayments-mobile-sdk-ios` is already tagged and
+released. The Swift package has no version field of its own — SPM versions
+come purely from tags on the satellite repo. Releasing means tagging
 `dodopayments-mobile-sdk-ios` directly (build/test there first), then bumping
 this repo's submodule pointer to match if you want the monorepo to reflect it.
 

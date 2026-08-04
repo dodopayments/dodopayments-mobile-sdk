@@ -2,7 +2,7 @@ name: dodopayments_checkout
 description: >-
   Open Dodo Payments' hosted checkout in a system browser tab and get a clean
   result from one call.
-version: 1.0.3
+version: 1.0.4
 homepage: https://github.com/dodopayments/dodopayments-mobile-sdk/tree/main/flutter
 repository: https://github.com/dodopayments/dodopayments-mobile-sdk
 issue_tracker: https://github.com/dodopayments/dodopayments-mobile-sdk/issues

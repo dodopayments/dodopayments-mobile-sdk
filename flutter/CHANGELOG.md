@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.4
+
+- Fix: swiping down to dismiss the checkout sheet left `start()`'s `Future`
+  uncompleted, which also kept the in-progress guard set — every later
+  `start()` call threw `ALREADY_IN_PROGRESS` until app restart. Re-vendors
+  the Swift core at v1.0.2, which completes the `Future` with `cancelled`
+  on swipe-dismiss too, same as the Done button.
+
 ## 1.0.3
 
 - Bump `com.dodopayments.api:checkout-android` to 1.0.2 and re-vendor the
