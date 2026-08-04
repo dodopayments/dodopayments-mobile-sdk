@@ -2,11 +2,12 @@
 
 ## 1.1.2
 
-- Re-vendor the Swift core at v1.0.2: swiping down to dismiss the checkout
-  sheet left `start`'s continuation unresumed, since
-  `safariViewControllerDidFinish` only fires for the "Done" button tap, not
-  the interactive swipe-to-dismiss on a `.pageSheet`. The `closed` event now
-  fires for both.
+- Fixes swipe-to-dismiss on iOS: dismissing the checkout sheet by swiping
+  down (rather than tapping "Done") left the promise returned by `start()`
+  unresolved forever, and left the SDK stuck such that every later `start()`
+  call rejected with `ALREADY_IN_PROGRESS` until the app restarted. It now
+  resolves with `cancelled` and emits `checkout.closed`, same as the "Done"
+  button.
 
 ## 1.1.1
 
