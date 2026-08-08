@@ -64,6 +64,7 @@ static NSDictionary *DodoCheckoutParamsDictionary(
   NSMutableDictionary *dict = [NSMutableDictionary new];
   dict[@"checkoutUrl"] = params.checkoutUrl();
   dict[@"returnUrl"] = params.returnUrl();
+  dict[@"customizationJson"] = params.customizationJson();
   return dict;
 }
 

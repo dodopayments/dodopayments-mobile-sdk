@@ -83,6 +83,40 @@ describe('DodoCheckout.start', () => {
     ).rejects.toMatchObject({ code: 'ALREADY_IN_PROGRESS' });
   });
 
+  it('omits customizationJson when no customization is given', async () => {
+    startMock.mockResolvedValue({ status: 'cancelled', raw: {} });
+
+    await DodoCheckout.start({
+      checkoutUrl: 'https://checkout.dodopayments.com/session/cks_1',
+      returnUrl: 'myapp://checkout/return',
+    });
+
+    expect(startMock).toHaveBeenCalledWith(
+      expect.objectContaining({ customizationJson: undefined })
+    );
+  });
+
+  it('JSON-encodes customization for the native bridge', async () => {
+    startMock.mockResolvedValue({ status: 'cancelled', raw: {} });
+
+    await DodoCheckout.start({
+      checkoutUrl: 'https://checkout.dodopayments.com/session/cks_1',
+      returnUrl: 'myapp://checkout/return',
+      customization: {
+        android: { toolbarColor: '#112233', shareButtonEnabled: false },
+        ios: { dismissButtonStyle: 'cancel' },
+      },
+    });
+
+    const [nativeParams] = startMock.mock.calls[0] as [
+      { customizationJson?: string },
+    ];
+    expect(JSON.parse(nativeParams.customizationJson!)).toEqual({
+      android: { toolbarColor: '#112233', shareButtonEnabled: false },
+      ios: { dismissButtonStyle: 'cancel' },
+    });
+  });
+
   it('maps an unknown error to PLATFORM_ERROR', async () => {
     startMock.mockRejectedValue(new Error('boom'));
 

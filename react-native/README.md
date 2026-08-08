@@ -148,6 +148,10 @@ async function reconcileAbandonedSession() {
 }
 ```
 
+## Customization
+
+The checkout browser's toolbar, buttons, and color scheme can be customized via `customization` on `start(...)`. See the [Appearance Customization docs](https://docs.dodopayments.com/developer-resources/sdks/react-native#appearance-customization) for all available options.
+
 ## Errors
 
 `start` rejects with a `CheckoutError` (`.code` is one of `INVALID_CHECKOUT_URL`,

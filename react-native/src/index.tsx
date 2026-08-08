@@ -48,6 +48,47 @@ export type CheckoutEvent =
   | { type: 'checkout.return_received' }
   | { type: 'checkout.closed' };
 
+/**
+ * Customizes the checkout browser's chrome. `android`/`ios` carry options
+ * that only exist on that one platform — native only ever reads its own
+ * bag. Colors are hex strings, `"#RRGGBB"` or `"#AARRGGBB"`.
+ *
+ * No shared/top-level fields: `toolbarColor` was originally shared, but
+ * iOS's equivalent (`preferredBarTintColor`) is deprecated as of iOS 26 with
+ * no replacement and confirmed to have no visible effect there — not worth
+ * a color knob that's already inert on the majority of iOS devices. Same
+ * reasoning killed iOS's `controlTintColor` outright (it rested on the
+ * identically-deprecated `preferredControlTintColor`).
+ */
+export interface BrowserCustomization {
+  android?: {
+    toolbarColor?: string;
+    /** `'default'` is the system "X" icon; `'back'` is a back-arrow the SDK draws itself. */
+    closeButtonStyle?: 'default' | 'back';
+    closeButtonPosition?: 'start' | 'end';
+    /** Hides the toolbar's share icon when `false`. This is the option that answers "can we hide the share/overflow chrome" — on Android only; iOS has no API for either. */
+    shareButtonEnabled?: boolean;
+    showTitleEnabled?: boolean;
+    urlBarHidingEnabled?: boolean;
+    bookmarksButtonEnabled?: boolean;
+    downloadsButtonEnabled?: boolean;
+    secondaryToolbarColor?: string;
+    navigationBarColor?: string;
+    navigationBarDividerColor?: string;
+    /** Forces the Custom Tab's light/dark appearance regardless of the system setting. */
+    colorScheme?: 'system' | 'light' | 'dark';
+  };
+  ios?: {
+    dismissButtonStyle?: 'done' | 'close' | 'cancel';
+    /** Only has a visible effect when presentationStyle is 'fullScreen' — 'pageSheet' keeps the bars pinned regardless. */
+    barCollapsingEnabled?: boolean;
+    /** 'pageSheet' (default) is a card that leaves the app visible behind it and supports swipe-to-dismiss; 'fullScreen' covers the whole screen. */
+    presentationStyle?: 'pageSheet' | 'fullScreen';
+    /** Forces the sheet's light/dark appearance regardless of the system setting. */
+    colorScheme?: 'system' | 'light' | 'dark';
+  };
+}
+
 export interface CheckoutParams {
   checkoutUrl: string;
   /**
@@ -62,6 +103,8 @@ export interface CheckoutParams {
    * `Linking` handling into `DodoCheckout.handleOpenURL(url)`.
    */
   returnUrl: string;
+  /** Appearance customization for the checkout browser. */
+  customization?: BrowserCustomization;
   /** Lifecycle callback for logging/analytics only — never decide outcome from events. */
   onEvent?: (event: CheckoutEvent) => void;
 }
@@ -128,7 +171,7 @@ export const DodoCheckout = {
    * failure.
    */
   async start(params: CheckoutParams): Promise<CheckoutResult> {
-    const { checkoutUrl, returnUrl, onEvent } = params;
+    const { checkoutUrl, returnUrl, customization, onEvent } = params;
 
     const subscription = onEvent
       ? subscribeToCheckoutEvents((event) => {
@@ -148,6 +191,9 @@ export const DodoCheckout = {
       const native = await NativeDodoCheckout.start({
         checkoutUrl,
         returnUrl,
+        customizationJson: customization
+          ? JSON.stringify(customization)
+          : undefined,
       });
       return mapResult(native);
     } catch (error) {

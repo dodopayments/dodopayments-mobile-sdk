@@ -40,11 +40,16 @@ public final class DodoCheckoutReactNativeImpl: NSObject {
       return
     }
 
+    let customization = Self.customization(
+      fromJson: params["customizationJson"] as? String
+    )
+
     Task { @MainActor in
       do {
         let result = try await DodoCheckout.start(
           checkoutUrl: checkoutUrl,
           returnUrl: returnUrl,
+          customization: customization,
           onEvent: { [weak self] event in
             self?.forward(event)
           }
@@ -113,5 +118,51 @@ public final class DodoCheckoutReactNativeImpl: NSObject {
     if let email = result.customerEmail { body["customerEmail"] = email }
     if let keys = result.licenseKeys { body["licenseKeys"] = keys }
     return body
+  }
+
+  // JSON-decoded from the `customizationJson` string param — see the
+  // note on `NativeCheckoutParams.customizationJson` in the JS layer
+  // for why this crosses the bridge as a JSON string rather than a typed
+  // nested object. Only the "ios" sub-object is read; "android" (if present)
+  // is for the Android native module, not this one. `nil` (an
+  // absent/unrecognized key) is passed straight through to
+  // BrowserCustomization rather than resolved to a fallback here — the core
+  // itself decides what "unset" means (usually: don't touch the platform's
+  // own setter at all).
+  private static func customization(fromJson json: String?) -> BrowserCustomization {
+    guard
+      let json,
+      let data = json.data(using: .utf8),
+      let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+    else {
+      return BrowserCustomization()
+    }
+    let ios = dict["ios"] as? [String: Any]
+    return BrowserCustomization(
+      dismissButtonStyle: {
+        switch ios?["dismissButtonStyle"] as? String {
+        case "close": return .close
+        case "cancel": return .cancel
+        case "done": return .done
+        default: return nil
+        }
+      }(),
+      barCollapsingEnabled: ios?["barCollapsingEnabled"] as? Bool,
+      presentationStyle: {
+        switch ios?["presentationStyle"] as? String {
+        case "fullScreen": return .fullScreen
+        case "pageSheet": return .pageSheet
+        default: return nil
+        }
+      }(),
+      colorScheme: {
+        switch ios?["colorScheme"] as? String {
+        case "light": return .light
+        case "dark": return .dark
+        case "system": return .system
+        default: return nil
+        }
+      }()
+    )
   }
 }

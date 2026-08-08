@@ -16,6 +16,15 @@ import { TurboModuleRegistry } from 'react-native';
 export type NativeCheckoutParams = {
   checkoutUrl: string;
   returnUrl: string;
+  /**
+   * JSON-encoded `BrowserCustomization` (see `index.tsx`), or omitted.
+   * Stringified rather than passed as a typed nested object — TurboModule
+   * codegen's support for deeply-nested optional object params is thin
+   * enough to be a real risk to get subtly wrong, whereas an optional
+   * `string` field is the same well-supported shape `checkoutUrl` already
+   * uses. Native decodes it with its own platform JSON parser.
+   */
+  customizationJson?: string;
 };
 
 export type NativeCheckoutResult = {
