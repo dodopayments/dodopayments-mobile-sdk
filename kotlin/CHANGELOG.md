@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.0
+
+- Add `BrowserCustomization` on `CheckoutParams`: toolbar/secondary-toolbar/
+  navigation-bar(-divider) colors, close button style (`DEFAULT`/`BACK`) and
+  position, share/title/URL-bar-hiding/bookmarks/downloads toggles, and a
+  forced light/dark `colorScheme`. Every field defaults to `null`, and `null`
+  means the corresponding `CustomTabsIntent.Builder` setter is never called
+  at all — the Custom Tab host's own current behavior applies rather than
+  this SDK asserting a value on its behalf.
+
 ## 1.0.2
 
 - Fix: a `CANCELLED` or `PENDING` result no longer wipes the abandoned-session
