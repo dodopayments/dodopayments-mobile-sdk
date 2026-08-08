@@ -1,7 +1,14 @@
 package com.dodopayments.checkout
 
-/** The input to [DodoCheckout.start] / [DodoCheckout.contract]. */
-data class CheckoutParams(
+/**
+ * The input to [DodoCheckout.start] / [DodoCheckout.contract].
+ *
+ * Future optional fields must be appended after [customization], never
+ * inserted before it — this is a `data class` using `@JvmOverloads`, so an
+ * insertion would shift `componentN()` destructuring positions and drop
+ * constructor overloads for Java callers of the published Maven artifact.
+ */
+data class CheckoutParams @JvmOverloads constructor(
     /**
      * The session URL from your backend. Must be a
      * `checkout.dodopayments.com` / `test.checkout.dodopayments.com`
@@ -16,5 +23,7 @@ data class CheckoutParams(
      * intent-filter in your own app, so the OS routes the redirect back to
      * this app — see that class's kdoc for the exact block to add.
      */
-    val returnUrl: String
+    val returnUrl: String,
+    /** Appearance customization for the checkout browser. */
+    val customization: BrowserCustomization = BrowserCustomization()
 )

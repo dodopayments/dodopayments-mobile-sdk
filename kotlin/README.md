@@ -7,7 +7,7 @@ and get a clean result from one call.
 
 ```kotlin
 dependencies {
-    implementation("com.dodopayments.api:checkout-android:1.0.2")
+    implementation("com.dodopayments.api:checkout-android:1.1.0")
 }
 ```
 
@@ -149,6 +149,10 @@ suspend fun reconcileAbandonedSession() {
     show(outcome)
 }
 ```
+
+## Customization
+
+The Custom Tab's toolbar, buttons, and color scheme can be customized via `customization` on `CheckoutParams`. See the [Appearance Customization docs](https://docs.dodopayments.com/developer-resources/sdks/android#appearance-customization) for all available options.
 
 ## Errors
 

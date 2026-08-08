@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 
 /**
@@ -26,6 +27,7 @@ internal class BrowserCheckoutHostActivity : ComponentActivity() {
     private lateinit var checkoutUrl: String
     private lateinit var returnUrl: String
     private lateinit var matcher: ReturnUrlMatcher
+    private var customization: BrowserCustomization = BrowserCustomization()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,6 +58,11 @@ internal class BrowserCheckoutHostActivity : ComponentActivity() {
         this.checkoutUrl = checkoutUrl
         this.returnUrl = returnUrl
         this.matcher = ReturnUrlMatcher(returnUrl)
+        this.customization = (savedInstanceState?.getBundle(STATE_BROWSER_CUSTOMIZATION)
+            ?: intent.getBundleExtra(EXTRA_BROWSER_CUSTOMIZATION))
+            ?.toStringMap()
+            ?.toBrowserCustomization()
+            ?: BrowserCustomization()
 
         if (savedInstanceState == null) {
             CheckoutCoordinator.emit(CheckoutEvent.Opened)
@@ -133,12 +140,16 @@ internal class BrowserCheckoutHostActivity : ComponentActivity() {
         if (::returnUrl.isInitialized) {
             outState.putString(STATE_RETURN_URL, returnUrl)
         }
+        outState.putBundle(STATE_BROWSER_CUSTOMIZATION, customization.toStringMap().toBundle())
     }
 
     private fun launchBrowser() {
         browserLaunched = true
         try {
-            CustomTabsIntent.Builder().build().launchUrl(this, Uri.parse(checkoutUrl))
+            CustomTabsIntent.Builder()
+                .apply { applyBrowserCustomization(customization) }
+                .build()
+                .launchUrl(this, Uri.parse(checkoutUrl))
         } catch (t: Throwable) {
             failWith(
                 CheckoutError(
@@ -146,6 +157,50 @@ internal class BrowserCheckoutHostActivity : ComponentActivity() {
                     t.message ?: "No browser available to open the checkout."
                 )
             )
+        }
+    }
+
+    // Every field is applied conditionally — `null` means the corresponding
+    // setter is never called at all, so the Custom Tab host's own live
+    // default applies, rather than this SDK asserting a value on its behalf.
+    private fun CustomTabsIntent.Builder.applyBrowserCustomization(customization: BrowserCustomization) {
+        if (customization.toolbarColor != null ||
+            customization.secondaryToolbarColor != null ||
+            customization.navigationBarColor != null ||
+            customization.navigationBarDividerColor != null
+        ) {
+            val colorSchemeParams = CustomTabColorSchemeParams.Builder().apply {
+                customization.toolbarColor?.let { setToolbarColor(it) }
+                customization.secondaryToolbarColor?.let { setSecondaryToolbarColor(it) }
+                customization.navigationBarColor?.let { setNavigationBarColor(it) }
+                customization.navigationBarDividerColor?.let { setNavigationBarDividerColor(it) }
+            }.build()
+            setDefaultColorSchemeParams(colorSchemeParams)
+        }
+        customization.colorScheme?.let {
+            setColorScheme(
+                when (it) {
+                    BrowserCustomization.ColorScheme.LIGHT -> CustomTabsIntent.COLOR_SCHEME_LIGHT
+                    BrowserCustomization.ColorScheme.DARK -> CustomTabsIntent.COLOR_SCHEME_DARK
+                    BrowserCustomization.ColorScheme.SYSTEM -> CustomTabsIntent.COLOR_SCHEME_SYSTEM
+                }
+            )
+        }
+        customization.showTitleEnabled?.let { setShowTitle(it) }
+        customization.urlBarHidingEnabled?.let { setUrlBarHidingEnabled(it) }
+        customization.shareButtonEnabled?.let {
+            setShareState(if (it) CustomTabsIntent.SHARE_STATE_ON else CustomTabsIntent.SHARE_STATE_OFF)
+        }
+        customization.bookmarksButtonEnabled?.let { setBookmarksButtonEnabled(it) }
+        customization.downloadsButtonEnabled?.let { setDownloadButtonEnabled(it) }
+        customization.closeButtonPosition?.let {
+            setCloseButtonPosition(
+                if (it == BrowserCustomization.CloseButtonPosition.END) CustomTabsIntent.CLOSE_BUTTON_POSITION_END
+                else CustomTabsIntent.CLOSE_BUTTON_POSITION_START
+            )
+        }
+        if (customization.closeButtonStyle == BrowserCustomization.CloseButtonStyle.BACK) {
+            setCloseButtonIcon(CloseButtonIcons.backArrow(this@BrowserCheckoutHostActivity, customization.toolbarColor))
         }
     }
 
@@ -214,12 +269,24 @@ internal class BrowserCheckoutHostActivity : ComponentActivity() {
         private const val STATE_PAUSED_SINCE_LAUNCH = "com.dodopayments.checkout.state.pausedSinceLaunch"
         private const val STATE_CHECKOUT_URL = "com.dodopayments.checkout.state.browserCheckoutUrl"
         private const val STATE_RETURN_URL = "com.dodopayments.checkout.state.browserReturnUrl"
+        private const val EXTRA_BROWSER_CUSTOMIZATION = "com.dodopayments.checkout.extra.browserCustomization"
+        private const val STATE_BROWSER_CUSTOMIZATION = "com.dodopayments.checkout.state.browserCustomization"
 
         fun newIntent(context: Context, params: CheckoutParams): Intent =
             Intent(context, BrowserCheckoutHostActivity::class.java).apply {
                 putExtra(EXTRA_CHECKOUT_URL, params.checkoutUrl)
                 putExtra(EXTRA_RETURN_URL, params.returnUrl)
+                putExtra(EXTRA_BROWSER_CUSTOMIZATION, params.customization.toStringMap().toBundle())
             }
+
+        // Bundle <-> Map adapter at the actual Intent/state boundary; the
+        // field-level encoding itself lives in BrowserCustomization.kt so it
+        // stays unit-testable without android.os.Bundle.
+        private fun Bundle.toStringMap(): Map<String, String> =
+            keySet().associateWith { getString(it) ?: "" }
+
+        private fun Map<String, String>.toBundle(): Bundle =
+            Bundle().apply { forEach { (key, value) -> putString(key, value) } }
 
         /** Built by [BrowserRedirectActivity] to forward the caught redirect. */
         internal fun redirectIntent(context: Context, redirectUri: String): Intent =
