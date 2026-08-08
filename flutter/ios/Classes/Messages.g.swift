@@ -374,7 +374,6 @@ struct NativeAndroidBrowserOptions: Hashable, CustomStringConvertible {
   var urlBarHidingEnabled: Bool? = nil
   var bookmarksButtonEnabled: Bool? = nil
   var downloadsButtonEnabled: Bool? = nil
-  var secondaryToolbarColor: Int64? = nil
   var navigationBarColor: Int64? = nil
   var navigationBarDividerColor: Int64? = nil
   var colorScheme: NativeBrowserColorScheme? = nil
@@ -390,10 +389,9 @@ struct NativeAndroidBrowserOptions: Hashable, CustomStringConvertible {
     let urlBarHidingEnabled: Bool? = nilOrValue(pigeonVar_list[5])
     let bookmarksButtonEnabled: Bool? = nilOrValue(pigeonVar_list[6])
     let downloadsButtonEnabled: Bool? = nilOrValue(pigeonVar_list[7])
-    let secondaryToolbarColor: Int64? = nilOrValue(pigeonVar_list[8])
-    let navigationBarColor: Int64? = nilOrValue(pigeonVar_list[9])
-    let navigationBarDividerColor: Int64? = nilOrValue(pigeonVar_list[10])
-    let colorScheme: NativeBrowserColorScheme? = nilOrValue(pigeonVar_list[11])
+    let navigationBarColor: Int64? = nilOrValue(pigeonVar_list[8])
+    let navigationBarDividerColor: Int64? = nilOrValue(pigeonVar_list[9])
+    let colorScheme: NativeBrowserColorScheme? = nilOrValue(pigeonVar_list[10])
 
     return NativeAndroidBrowserOptions(
       toolbarColor: toolbarColor,
@@ -404,7 +402,6 @@ struct NativeAndroidBrowserOptions: Hashable, CustomStringConvertible {
       urlBarHidingEnabled: urlBarHidingEnabled,
       bookmarksButtonEnabled: bookmarksButtonEnabled,
       downloadsButtonEnabled: downloadsButtonEnabled,
-      secondaryToolbarColor: secondaryToolbarColor,
       navigationBarColor: navigationBarColor,
       navigationBarDividerColor: navigationBarDividerColor,
       colorScheme: colorScheme
@@ -420,7 +417,6 @@ struct NativeAndroidBrowserOptions: Hashable, CustomStringConvertible {
       urlBarHidingEnabled,
       bookmarksButtonEnabled,
       downloadsButtonEnabled,
-      secondaryToolbarColor,
       navigationBarColor,
       navigationBarDividerColor,
       colorScheme,
@@ -430,7 +426,7 @@ struct NativeAndroidBrowserOptions: Hashable, CustomStringConvertible {
     if Swift.type(of: lhs) != Swift.type(of: rhs) {
       return false
     }
-    return MessagesPigeonInternal.deepEquals(lhs.toolbarColor, rhs.toolbarColor) && MessagesPigeonInternal.deepEquals(lhs.closeButtonStyle, rhs.closeButtonStyle) && MessagesPigeonInternal.deepEquals(lhs.closeButtonPosition, rhs.closeButtonPosition) && MessagesPigeonInternal.deepEquals(lhs.shareButtonEnabled, rhs.shareButtonEnabled) && MessagesPigeonInternal.deepEquals(lhs.showTitleEnabled, rhs.showTitleEnabled) && MessagesPigeonInternal.deepEquals(lhs.urlBarHidingEnabled, rhs.urlBarHidingEnabled) && MessagesPigeonInternal.deepEquals(lhs.bookmarksButtonEnabled, rhs.bookmarksButtonEnabled) && MessagesPigeonInternal.deepEquals(lhs.downloadsButtonEnabled, rhs.downloadsButtonEnabled) && MessagesPigeonInternal.deepEquals(lhs.secondaryToolbarColor, rhs.secondaryToolbarColor) && MessagesPigeonInternal.deepEquals(lhs.navigationBarColor, rhs.navigationBarColor) && MessagesPigeonInternal.deepEquals(lhs.navigationBarDividerColor, rhs.navigationBarDividerColor) && MessagesPigeonInternal.deepEquals(lhs.colorScheme, rhs.colorScheme)
+    return MessagesPigeonInternal.deepEquals(lhs.toolbarColor, rhs.toolbarColor) && MessagesPigeonInternal.deepEquals(lhs.closeButtonStyle, rhs.closeButtonStyle) && MessagesPigeonInternal.deepEquals(lhs.closeButtonPosition, rhs.closeButtonPosition) && MessagesPigeonInternal.deepEquals(lhs.shareButtonEnabled, rhs.shareButtonEnabled) && MessagesPigeonInternal.deepEquals(lhs.showTitleEnabled, rhs.showTitleEnabled) && MessagesPigeonInternal.deepEquals(lhs.urlBarHidingEnabled, rhs.urlBarHidingEnabled) && MessagesPigeonInternal.deepEquals(lhs.bookmarksButtonEnabled, rhs.bookmarksButtonEnabled) && MessagesPigeonInternal.deepEquals(lhs.downloadsButtonEnabled, rhs.downloadsButtonEnabled) && MessagesPigeonInternal.deepEquals(lhs.navigationBarColor, rhs.navigationBarColor) && MessagesPigeonInternal.deepEquals(lhs.navigationBarDividerColor, rhs.navigationBarDividerColor) && MessagesPigeonInternal.deepEquals(lhs.colorScheme, rhs.colorScheme)
   }
 
   func hash(into hasher: inout Hasher) {
@@ -443,14 +439,13 @@ struct NativeAndroidBrowserOptions: Hashable, CustomStringConvertible {
     MessagesPigeonInternal.deepHash(value: urlBarHidingEnabled, hasher: &hasher)
     MessagesPigeonInternal.deepHash(value: bookmarksButtonEnabled, hasher: &hasher)
     MessagesPigeonInternal.deepHash(value: downloadsButtonEnabled, hasher: &hasher)
-    MessagesPigeonInternal.deepHash(value: secondaryToolbarColor, hasher: &hasher)
     MessagesPigeonInternal.deepHash(value: navigationBarColor, hasher: &hasher)
     MessagesPigeonInternal.deepHash(value: navigationBarDividerColor, hasher: &hasher)
     MessagesPigeonInternal.deepHash(value: colorScheme, hasher: &hasher)
   }
 
   public var description: String {
-    return "NativeAndroidBrowserOptions(toolbarColor: \(String(describing: toolbarColor)), closeButtonStyle: \(String(describing: closeButtonStyle)), closeButtonPosition: \(String(describing: closeButtonPosition)), shareButtonEnabled: \(String(describing: shareButtonEnabled)), showTitleEnabled: \(String(describing: showTitleEnabled)), urlBarHidingEnabled: \(String(describing: urlBarHidingEnabled)), bookmarksButtonEnabled: \(String(describing: bookmarksButtonEnabled)), downloadsButtonEnabled: \(String(describing: downloadsButtonEnabled)), secondaryToolbarColor: \(String(describing: secondaryToolbarColor)), navigationBarColor: \(String(describing: navigationBarColor)), navigationBarDividerColor: \(String(describing: navigationBarDividerColor)), colorScheme: \(String(describing: colorScheme)))"
+    return "NativeAndroidBrowserOptions(toolbarColor: \(String(describing: toolbarColor)), closeButtonStyle: \(String(describing: closeButtonStyle)), closeButtonPosition: \(String(describing: closeButtonPosition)), shareButtonEnabled: \(String(describing: shareButtonEnabled)), showTitleEnabled: \(String(describing: showTitleEnabled)), urlBarHidingEnabled: \(String(describing: urlBarHidingEnabled)), bookmarksButtonEnabled: \(String(describing: bookmarksButtonEnabled)), downloadsButtonEnabled: \(String(describing: downloadsButtonEnabled)), navigationBarColor: \(String(describing: navigationBarColor)), navigationBarDividerColor: \(String(describing: navigationBarDividerColor)), colorScheme: \(String(describing: colorScheme)))"
   }
 }
 

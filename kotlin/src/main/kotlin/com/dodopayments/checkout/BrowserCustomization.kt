@@ -19,7 +19,6 @@ package com.dodopayments.checkout
 data class BrowserCustomization @JvmOverloads constructor(
     /** Toolbar background color, as an ARGB [android.graphics.Color] int. */
     val toolbarColor: Int? = null,
-    val secondaryToolbarColor: Int? = null,
     val navigationBarColor: Int? = null,
     val navigationBarDividerColor: Int? = null,
     val closeButtonStyle: CloseButtonStyle? = null,
@@ -63,7 +62,6 @@ data class BrowserCustomization @JvmOverloads constructor(
  */
 internal fun BrowserCustomization.toStringMap(): Map<String, String> = buildMap {
     toolbarColor?.let { put("toolbarColor", it.toString()) }
-    secondaryToolbarColor?.let { put("secondaryToolbarColor", it.toString()) }
     navigationBarColor?.let { put("navigationBarColor", it.toString()) }
     navigationBarDividerColor?.let { put("navigationBarDividerColor", it.toString()) }
     closeButtonStyle?.let { put("closeButtonStyle", it.name) }
@@ -80,7 +78,6 @@ internal fun BrowserCustomization.toStringMap(): Map<String, String> = buildMap 
 internal fun Map<String, String>.toBrowserCustomization(): BrowserCustomization =
     BrowserCustomization(
         toolbarColor = this["toolbarColor"]?.toIntOrNull(),
-        secondaryToolbarColor = this["secondaryToolbarColor"]?.toIntOrNull(),
         navigationBarColor = this["navigationBarColor"]?.toIntOrNull(),
         navigationBarDividerColor = this["navigationBarDividerColor"]?.toIntOrNull(),
         closeButtonStyle = this["closeButtonStyle"]

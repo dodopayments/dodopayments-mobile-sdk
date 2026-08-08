@@ -15,7 +15,6 @@ class BrowserCustomizationTest {
         // for where each null is actually resolved (skipped).
         val defaults = BrowserCustomization()
         assertNull(defaults.toolbarColor)
-        assertNull(defaults.secondaryToolbarColor)
         assertNull(defaults.navigationBarColor)
         assertNull(defaults.navigationBarDividerColor)
         assertNull(defaults.closeButtonStyle)
@@ -37,7 +36,6 @@ class BrowserCustomizationTest {
     fun roundTripsThroughStringMap() {
         val customization = BrowserCustomization(
             toolbarColor = -0x123457, // an arbitrary negative ARGB int
-            secondaryToolbarColor = -0x1,
             navigationBarColor = 0x11223344,
             navigationBarDividerColor = 0,
             closeButtonStyle = BrowserCustomization.CloseButtonStyle.BACK,

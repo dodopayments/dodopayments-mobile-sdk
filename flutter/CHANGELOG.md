@@ -3,7 +3,7 @@
 ## 1.1.0
 
 - Add `customization` on `CheckoutParams`: an optional `AndroidBrowserOptions`/
-  `IosBrowserOptions` pair. Android covers toolbar/secondary-toolbar/
+  `IosBrowserOptions` pair. Android covers toolbar and
   navigation-bar(-divider) colors, close button style and position,
   share/title/URL-bar-hiding/bookmarks/downloads toggles, and a forced
   light/dark color scheme. iOS covers dismiss button style, bar-collapsing,

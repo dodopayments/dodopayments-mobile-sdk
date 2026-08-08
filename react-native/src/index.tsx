@@ -72,7 +72,6 @@ export interface BrowserCustomization {
     urlBarHidingEnabled?: boolean;
     bookmarksButtonEnabled?: boolean;
     downloadsButtonEnabled?: boolean;
-    secondaryToolbarColor?: string;
     navigationBarColor?: string;
     navigationBarDividerColor?: string;
     /** Forces the Custom Tab's light/dark appearance regardless of the system setting. */

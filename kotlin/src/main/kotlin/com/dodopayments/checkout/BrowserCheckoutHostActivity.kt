@@ -165,13 +165,11 @@ internal class BrowserCheckoutHostActivity : ComponentActivity() {
     // default applies, rather than this SDK asserting a value on its behalf.
     private fun CustomTabsIntent.Builder.applyBrowserCustomization(customization: BrowserCustomization) {
         if (customization.toolbarColor != null ||
-            customization.secondaryToolbarColor != null ||
             customization.navigationBarColor != null ||
             customization.navigationBarDividerColor != null
         ) {
             val colorSchemeParams = CustomTabColorSchemeParams.Builder().apply {
                 customization.toolbarColor?.let { setToolbarColor(it) }
-                customization.secondaryToolbarColor?.let { setSecondaryToolbarColor(it) }
                 customization.navigationBarColor?.let { setNavigationBarColor(it) }
                 customization.navigationBarDividerColor?.let { setNavigationBarDividerColor(it) }
             }.build()

@@ -2,7 +2,7 @@
 
 ## 1.1.0
 
-- Add `BrowserCustomization` on `CheckoutParams`: toolbar/secondary-toolbar/
+- Add `BrowserCustomization` on `CheckoutParams`: toolbar and
   navigation-bar(-divider) colors, close button style (`DEFAULT`/`BACK`) and
   position, share/title/URL-bar-hiding/bookmarks/downloads toggles, and a
   forced light/dark `colorScheme`. Every field defaults to `null`, and `null`

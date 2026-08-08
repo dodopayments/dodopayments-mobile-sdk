@@ -3,7 +3,7 @@
 ## 1.2.0
 
 - Add `customization` on `start()`: an optional `BrowserCustomization` with
-  separate `android`/`ios` bags. Android covers toolbar/secondary-toolbar/
+  separate `android`/`ios` bags. Android covers toolbar and
   navigation-bar(-divider) colors, close button style and position,
   share/title/URL-bar-hiding/bookmarks/downloads toggles, and a forced
   light/dark `colorScheme`. iOS covers dismiss button style, bar-collapsing,

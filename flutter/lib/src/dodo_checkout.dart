@@ -154,8 +154,6 @@ class DodoCheckout {
               urlBarHidingEnabled: android.urlBarHidingEnabled,
               bookmarksButtonEnabled: android.bookmarksButtonEnabled,
               downloadsButtonEnabled: android.downloadsButtonEnabled,
-              secondaryToolbarColor: android.secondaryToolbarColor
-                  ?.toARGB32(),
               navigationBarColor: android.navigationBarColor?.toARGB32(),
               navigationBarDividerColor: android.navigationBarDividerColor
                   ?.toARGB32(),

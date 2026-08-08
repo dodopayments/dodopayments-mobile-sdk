@@ -138,7 +138,6 @@ private fun JSONObject?.toBrowserCustomization(): BrowserCustomization {
   val android = optJSONObject("android")
   return BrowserCustomization(
     toolbarColor = android?.optStringOrNull("toolbarColor")?.let(::parseColorOrNull),
-    secondaryToolbarColor = android?.optStringOrNull("secondaryToolbarColor")?.let(::parseColorOrNull),
     navigationBarColor = android?.optStringOrNull("navigationBarColor")?.let(::parseColorOrNull),
     navigationBarDividerColor = android?.optStringOrNull("navigationBarDividerColor")?.let(::parseColorOrNull),
     closeButtonStyle = when (android?.optStringOrNull("closeButtonStyle")) {

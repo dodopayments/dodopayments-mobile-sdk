@@ -140,7 +140,6 @@ private fun NativeBrowserCustomization?.toCore(): BrowserCustomization {
   val android = android
   return BrowserCustomization(
       toolbarColor = android?.toolbarColor?.toInt(),
-      secondaryToolbarColor = android?.secondaryToolbarColor?.toInt(),
       navigationBarColor = android?.navigationBarColor?.toInt(),
       navigationBarDividerColor = android?.navigationBarDividerColor?.toInt(),
       closeButtonStyle =
