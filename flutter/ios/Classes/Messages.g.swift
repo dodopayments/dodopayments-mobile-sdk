@@ -197,6 +197,44 @@ enum NativeCheckoutStatus: Int, CaseIterable {
   case expired = 4
 }
 
+/// `standard` (not `default` — a reserved Dart keyword) is the system "X"
+/// icon on Android; `back` is a back-arrow icon the SDK draws itself. No
+/// iOS equivalent — see [NativeDismissButtonStyle] for iOS's dismiss button.
+enum NativeCloseButtonStyle: Int, CaseIterable {
+  case standard = 0
+  case back = 1
+}
+
+enum NativeCloseButtonPosition: Int, CaseIterable {
+  case start = 0
+  case end = 1
+}
+
+/// Mirrors `SFSafariViewController.DismissButtonStyle`. No Android
+/// equivalent — see [NativeCloseButtonStyle] for Android's close button.
+enum NativeDismissButtonStyle: Int, CaseIterable {
+  case done = 0
+  case close = 1
+  case cancel = 2
+}
+
+/// Mirrors `UIViewController.modalPresentationStyle` as used to present the
+/// checkout sheet. No Android equivalent — Custom Tabs has no comparable
+/// page-sheet-vs-full-screen distinction in this SDK.
+enum NativePresentationStyle: Int, CaseIterable {
+  case pageSheet = 0
+  case fullScreen = 1
+}
+
+/// Forces the browser's light/dark appearance regardless of the system
+/// setting. Exists independently on `android` and `ios` (not shared) even
+/// though the values are identical, matching every other field here.
+enum NativeBrowserColorScheme: Int, CaseIterable {
+  case system = 0
+  case light = 1
+  case dark = 2
+}
+
 /// Mirrors `CheckoutEvent` in the native cores. Lifecycle-only — never used
 /// to decide the checkout outcome.
 enum NativeEventType: Int, CaseIterable {
@@ -214,39 +252,269 @@ struct StartRequest: Hashable, CustomStringConvertible {
   /// activity (Android), so the OS routes the checkout return back to this
   /// app.
   var returnUrl: String
+  /// Appearance customization for the checkout browser.
+  var customization: NativeBrowserCustomization? = nil
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
   static func fromList(_ pigeonVar_list: [Any?]) -> StartRequest? {
     let checkoutUrl = pigeonVar_list[0] as! String
     let returnUrl = pigeonVar_list[1] as! String
+    let customization: NativeBrowserCustomization? = nilOrValue(pigeonVar_list[2])
 
     return StartRequest(
       checkoutUrl: checkoutUrl,
-      returnUrl: returnUrl
+      returnUrl: returnUrl,
+      customization: customization
     )
   }
   func toList() -> [Any?] {
     return [
       checkoutUrl,
       returnUrl,
+      customization,
     ]
   }
   static func == (lhs: StartRequest, rhs: StartRequest) -> Bool {
     if Swift.type(of: lhs) != Swift.type(of: rhs) {
       return false
     }
-    return MessagesPigeonInternal.deepEquals(lhs.checkoutUrl, rhs.checkoutUrl) && MessagesPigeonInternal.deepEquals(lhs.returnUrl, rhs.returnUrl)
+    return MessagesPigeonInternal.deepEquals(lhs.checkoutUrl, rhs.checkoutUrl) && MessagesPigeonInternal.deepEquals(lhs.returnUrl, rhs.returnUrl) && MessagesPigeonInternal.deepEquals(lhs.customization, rhs.customization)
   }
 
   func hash(into hasher: inout Hasher) {
     hasher.combine("StartRequest")
     MessagesPigeonInternal.deepHash(value: checkoutUrl, hasher: &hasher)
     MessagesPigeonInternal.deepHash(value: returnUrl, hasher: &hasher)
+    MessagesPigeonInternal.deepHash(value: customization, hasher: &hasher)
   }
 
   public var description: String {
-    return "StartRequest(checkoutUrl: \(String(describing: checkoutUrl)), returnUrl: \(String(describing: returnUrl)))"
+    return "StartRequest(checkoutUrl: \(String(describing: checkoutUrl)), returnUrl: \(String(describing: returnUrl)), customization: \(String(describing: customization)))"
+  }
+}
+
+/// Mirrors the native `BrowserCustomization`. `android`/`ios` carry options
+/// that only exist on that one platform — native only ever reads its own
+/// bag, so this crosses both platforms from one Dart type without either
+/// side seeing the other's fields.
+///
+/// No shared/top-level fields: `toolbarColor` was originally shared, but
+/// iOS's equivalent (`preferredBarTintColor`) is deprecated as of iOS 26
+/// with no replacement and confirmed to have no visible effect there — not
+/// worth a color knob that's already inert on the majority of iOS devices.
+/// Same reasoning killed iOS's `controlTintColor` outright (it rested on
+/// the identically-deprecated `preferredControlTintColor`).
+///
+/// Generated class from Pigeon that represents data sent in messages.
+struct NativeBrowserCustomization: Hashable, CustomStringConvertible {
+  var android: NativeAndroidBrowserOptions? = nil
+  var ios: NativeIosBrowserOptions? = nil
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> NativeBrowserCustomization? {
+    let android: NativeAndroidBrowserOptions? = nilOrValue(pigeonVar_list[0])
+    let ios: NativeIosBrowserOptions? = nilOrValue(pigeonVar_list[1])
+
+    return NativeBrowserCustomization(
+      android: android,
+      ios: ios
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      android,
+      ios,
+    ]
+  }
+  static func == (lhs: NativeBrowserCustomization, rhs: NativeBrowserCustomization) -> Bool {
+    if Swift.type(of: lhs) != Swift.type(of: rhs) {
+      return false
+    }
+    return MessagesPigeonInternal.deepEquals(lhs.android, rhs.android) && MessagesPigeonInternal.deepEquals(lhs.ios, rhs.ios)
+  }
+
+  func hash(into hasher: inout Hasher) {
+    hasher.combine("NativeBrowserCustomization")
+    MessagesPigeonInternal.deepHash(value: android, hasher: &hasher)
+    MessagesPigeonInternal.deepHash(value: ios, hasher: &hasher)
+  }
+
+  public var description: String {
+    return "NativeBrowserCustomization(android: \(String(describing: android)), ios: \(String(describing: ios)))"
+  }
+}
+
+/// Every field is `null` by default. `null` isn't resolved to a fallback
+/// anywhere in Dart — it crosses the channel as-is, and the native side
+/// decides what "unset" means (usually: don't call the corresponding
+/// `CustomTabsIntent.Builder` setter at all, so the Custom Tab host's own
+/// live default applies). This is deliberate: hardcoding a guess at "the
+/// platform default" in Dart can go stale the moment the host changes it,
+/// silently changing behavior for every integrator who never touched that
+/// field.
+///
+/// Pigeon encodes this class as a fixed-position list, not a keyed map —
+/// `decode()` reads `result[0]`, `result[1]`, ... by index, matching
+/// declaration order exactly. Future fields must be appended at the end,
+/// never inserted, or every field after the insertion point silently reads
+/// the wrong value. Regenerate all three codegen targets together after any
+/// change (`dart run pigeon --input pigeons/messages.dart`).
+///
+/// Generated class from Pigeon that represents data sent in messages.
+struct NativeAndroidBrowserOptions: Hashable, CustomStringConvertible {
+  /// ARGB, i.e. `Color.toARGB32()`.
+  var toolbarColor: Int64? = nil
+  var closeButtonStyle: NativeCloseButtonStyle? = nil
+  var closeButtonPosition: NativeCloseButtonPosition? = nil
+  /// Hides the toolbar's share icon when `false`.
+  var shareButtonEnabled: Bool? = nil
+  var showTitleEnabled: Bool? = nil
+  var urlBarHidingEnabled: Bool? = nil
+  var bookmarksButtonEnabled: Bool? = nil
+  var downloadsButtonEnabled: Bool? = nil
+  var secondaryToolbarColor: Int64? = nil
+  var navigationBarColor: Int64? = nil
+  var navigationBarDividerColor: Int64? = nil
+  var colorScheme: NativeBrowserColorScheme? = nil
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> NativeAndroidBrowserOptions? {
+    let toolbarColor: Int64? = nilOrValue(pigeonVar_list[0])
+    let closeButtonStyle: NativeCloseButtonStyle? = nilOrValue(pigeonVar_list[1])
+    let closeButtonPosition: NativeCloseButtonPosition? = nilOrValue(pigeonVar_list[2])
+    let shareButtonEnabled: Bool? = nilOrValue(pigeonVar_list[3])
+    let showTitleEnabled: Bool? = nilOrValue(pigeonVar_list[4])
+    let urlBarHidingEnabled: Bool? = nilOrValue(pigeonVar_list[5])
+    let bookmarksButtonEnabled: Bool? = nilOrValue(pigeonVar_list[6])
+    let downloadsButtonEnabled: Bool? = nilOrValue(pigeonVar_list[7])
+    let secondaryToolbarColor: Int64? = nilOrValue(pigeonVar_list[8])
+    let navigationBarColor: Int64? = nilOrValue(pigeonVar_list[9])
+    let navigationBarDividerColor: Int64? = nilOrValue(pigeonVar_list[10])
+    let colorScheme: NativeBrowserColorScheme? = nilOrValue(pigeonVar_list[11])
+
+    return NativeAndroidBrowserOptions(
+      toolbarColor: toolbarColor,
+      closeButtonStyle: closeButtonStyle,
+      closeButtonPosition: closeButtonPosition,
+      shareButtonEnabled: shareButtonEnabled,
+      showTitleEnabled: showTitleEnabled,
+      urlBarHidingEnabled: urlBarHidingEnabled,
+      bookmarksButtonEnabled: bookmarksButtonEnabled,
+      downloadsButtonEnabled: downloadsButtonEnabled,
+      secondaryToolbarColor: secondaryToolbarColor,
+      navigationBarColor: navigationBarColor,
+      navigationBarDividerColor: navigationBarDividerColor,
+      colorScheme: colorScheme
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      toolbarColor,
+      closeButtonStyle,
+      closeButtonPosition,
+      shareButtonEnabled,
+      showTitleEnabled,
+      urlBarHidingEnabled,
+      bookmarksButtonEnabled,
+      downloadsButtonEnabled,
+      secondaryToolbarColor,
+      navigationBarColor,
+      navigationBarDividerColor,
+      colorScheme,
+    ]
+  }
+  static func == (lhs: NativeAndroidBrowserOptions, rhs: NativeAndroidBrowserOptions) -> Bool {
+    if Swift.type(of: lhs) != Swift.type(of: rhs) {
+      return false
+    }
+    return MessagesPigeonInternal.deepEquals(lhs.toolbarColor, rhs.toolbarColor) && MessagesPigeonInternal.deepEquals(lhs.closeButtonStyle, rhs.closeButtonStyle) && MessagesPigeonInternal.deepEquals(lhs.closeButtonPosition, rhs.closeButtonPosition) && MessagesPigeonInternal.deepEquals(lhs.shareButtonEnabled, rhs.shareButtonEnabled) && MessagesPigeonInternal.deepEquals(lhs.showTitleEnabled, rhs.showTitleEnabled) && MessagesPigeonInternal.deepEquals(lhs.urlBarHidingEnabled, rhs.urlBarHidingEnabled) && MessagesPigeonInternal.deepEquals(lhs.bookmarksButtonEnabled, rhs.bookmarksButtonEnabled) && MessagesPigeonInternal.deepEquals(lhs.downloadsButtonEnabled, rhs.downloadsButtonEnabled) && MessagesPigeonInternal.deepEquals(lhs.secondaryToolbarColor, rhs.secondaryToolbarColor) && MessagesPigeonInternal.deepEquals(lhs.navigationBarColor, rhs.navigationBarColor) && MessagesPigeonInternal.deepEquals(lhs.navigationBarDividerColor, rhs.navigationBarDividerColor) && MessagesPigeonInternal.deepEquals(lhs.colorScheme, rhs.colorScheme)
+  }
+
+  func hash(into hasher: inout Hasher) {
+    hasher.combine("NativeAndroidBrowserOptions")
+    MessagesPigeonInternal.deepHash(value: toolbarColor, hasher: &hasher)
+    MessagesPigeonInternal.deepHash(value: closeButtonStyle, hasher: &hasher)
+    MessagesPigeonInternal.deepHash(value: closeButtonPosition, hasher: &hasher)
+    MessagesPigeonInternal.deepHash(value: shareButtonEnabled, hasher: &hasher)
+    MessagesPigeonInternal.deepHash(value: showTitleEnabled, hasher: &hasher)
+    MessagesPigeonInternal.deepHash(value: urlBarHidingEnabled, hasher: &hasher)
+    MessagesPigeonInternal.deepHash(value: bookmarksButtonEnabled, hasher: &hasher)
+    MessagesPigeonInternal.deepHash(value: downloadsButtonEnabled, hasher: &hasher)
+    MessagesPigeonInternal.deepHash(value: secondaryToolbarColor, hasher: &hasher)
+    MessagesPigeonInternal.deepHash(value: navigationBarColor, hasher: &hasher)
+    MessagesPigeonInternal.deepHash(value: navigationBarDividerColor, hasher: &hasher)
+    MessagesPigeonInternal.deepHash(value: colorScheme, hasher: &hasher)
+  }
+
+  public var description: String {
+    return "NativeAndroidBrowserOptions(toolbarColor: \(String(describing: toolbarColor)), closeButtonStyle: \(String(describing: closeButtonStyle)), closeButtonPosition: \(String(describing: closeButtonPosition)), shareButtonEnabled: \(String(describing: shareButtonEnabled)), showTitleEnabled: \(String(describing: showTitleEnabled)), urlBarHidingEnabled: \(String(describing: urlBarHidingEnabled)), bookmarksButtonEnabled: \(String(describing: bookmarksButtonEnabled)), downloadsButtonEnabled: \(String(describing: downloadsButtonEnabled)), secondaryToolbarColor: \(String(describing: secondaryToolbarColor)), navigationBarColor: \(String(describing: navigationBarColor)), navigationBarDividerColor: \(String(describing: navigationBarDividerColor)), colorScheme: \(String(describing: colorScheme)))"
+  }
+}
+
+/// Every field is `null` by default. `null` isn't resolved to a fallback
+/// anywhere in Dart — it crosses the channel as-is, and the native side
+/// decides what "unset" means (usually: don't touch the corresponding
+/// `SFSafariViewController` property at all, so the OS's own live default
+/// applies). This is deliberate: hardcoding a guess at "the platform
+/// default" in Dart can go stale the moment Apple changes it, silently
+/// changing behavior for every integrator who never touched that field.
+///
+/// Same fixed-position wire encoding as [NativeAndroidBrowserOptions] —
+/// append future fields at the end, never insert.
+///
+/// Generated class from Pigeon that represents data sent in messages.
+struct NativeIosBrowserOptions: Hashable, CustomStringConvertible {
+  var dismissButtonStyle: NativeDismissButtonStyle? = nil
+  /// Only has a visible effect when [presentationStyle] is `fullScreen` —
+  /// confirmed by hands-on testing that `pageSheet` keeps the bars pinned
+  /// regardless of this setting.
+  var barCollapsingEnabled: Bool? = nil
+  var presentationStyle: NativePresentationStyle? = nil
+  var colorScheme: NativeBrowserColorScheme? = nil
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> NativeIosBrowserOptions? {
+    let dismissButtonStyle: NativeDismissButtonStyle? = nilOrValue(pigeonVar_list[0])
+    let barCollapsingEnabled: Bool? = nilOrValue(pigeonVar_list[1])
+    let presentationStyle: NativePresentationStyle? = nilOrValue(pigeonVar_list[2])
+    let colorScheme: NativeBrowserColorScheme? = nilOrValue(pigeonVar_list[3])
+
+    return NativeIosBrowserOptions(
+      dismissButtonStyle: dismissButtonStyle,
+      barCollapsingEnabled: barCollapsingEnabled,
+      presentationStyle: presentationStyle,
+      colorScheme: colorScheme
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      dismissButtonStyle,
+      barCollapsingEnabled,
+      presentationStyle,
+      colorScheme,
+    ]
+  }
+  static func == (lhs: NativeIosBrowserOptions, rhs: NativeIosBrowserOptions) -> Bool {
+    if Swift.type(of: lhs) != Swift.type(of: rhs) {
+      return false
+    }
+    return MessagesPigeonInternal.deepEquals(lhs.dismissButtonStyle, rhs.dismissButtonStyle) && MessagesPigeonInternal.deepEquals(lhs.barCollapsingEnabled, rhs.barCollapsingEnabled) && MessagesPigeonInternal.deepEquals(lhs.presentationStyle, rhs.presentationStyle) && MessagesPigeonInternal.deepEquals(lhs.colorScheme, rhs.colorScheme)
+  }
+
+  func hash(into hasher: inout Hasher) {
+    hasher.combine("NativeIosBrowserOptions")
+    MessagesPigeonInternal.deepHash(value: dismissButtonStyle, hasher: &hasher)
+    MessagesPigeonInternal.deepHash(value: barCollapsingEnabled, hasher: &hasher)
+    MessagesPigeonInternal.deepHash(value: presentationStyle, hasher: &hasher)
+    MessagesPigeonInternal.deepHash(value: colorScheme, hasher: &hasher)
+  }
+
+  public var description: String {
+    return "NativeIosBrowserOptions(dismissButtonStyle: \(String(describing: dismissButtonStyle)), barCollapsingEnabled: \(String(describing: barCollapsingEnabled)), presentationStyle: \(String(describing: presentationStyle)), colorScheme: \(String(describing: colorScheme)))"
   }
 }
 
@@ -403,16 +671,52 @@ private class MessagesPigeonCodecReader: FlutterStandardReader {
     case 130:
       let enumResultAsInt: Int? = nilOrValue(self.readValue() as! Int?)
       if let enumResultAsInt = enumResultAsInt {
-        return NativeEventType(rawValue: enumResultAsInt)
+        return NativeCloseButtonStyle(rawValue: enumResultAsInt)
       }
       return nil
     case 131:
-      return StartRequest.fromList(self.readValue() as! [Any?])
+      let enumResultAsInt: Int? = nilOrValue(self.readValue() as! Int?)
+      if let enumResultAsInt = enumResultAsInt {
+        return NativeCloseButtonPosition(rawValue: enumResultAsInt)
+      }
+      return nil
     case 132:
-      return NativeCheckoutResult.fromList(self.readValue() as! [Any?])
+      let enumResultAsInt: Int? = nilOrValue(self.readValue() as! Int?)
+      if let enumResultAsInt = enumResultAsInt {
+        return NativeDismissButtonStyle(rawValue: enumResultAsInt)
+      }
+      return nil
     case 133:
-      return NativeAbandonedSession.fromList(self.readValue() as! [Any?])
+      let enumResultAsInt: Int? = nilOrValue(self.readValue() as! Int?)
+      if let enumResultAsInt = enumResultAsInt {
+        return NativePresentationStyle(rawValue: enumResultAsInt)
+      }
+      return nil
     case 134:
+      let enumResultAsInt: Int? = nilOrValue(self.readValue() as! Int?)
+      if let enumResultAsInt = enumResultAsInt {
+        return NativeBrowserColorScheme(rawValue: enumResultAsInt)
+      }
+      return nil
+    case 135:
+      let enumResultAsInt: Int? = nilOrValue(self.readValue() as! Int?)
+      if let enumResultAsInt = enumResultAsInt {
+        return NativeEventType(rawValue: enumResultAsInt)
+      }
+      return nil
+    case 136:
+      return StartRequest.fromList(self.readValue() as! [Any?])
+    case 137:
+      return NativeBrowserCustomization.fromList(self.readValue() as! [Any?])
+    case 138:
+      return NativeAndroidBrowserOptions.fromList(self.readValue() as! [Any?])
+    case 139:
+      return NativeIosBrowserOptions.fromList(self.readValue() as! [Any?])
+    case 140:
+      return NativeCheckoutResult.fromList(self.readValue() as! [Any?])
+    case 141:
+      return NativeAbandonedSession.fromList(self.readValue() as! [Any?])
+    case 142:
       return NativeCheckoutEvent.fromList(self.readValue() as! [Any?])
     default:
       return super.readValue(ofType: type)
@@ -425,20 +729,44 @@ private class MessagesPigeonCodecWriter: FlutterStandardWriter {
     if let value = value as? NativeCheckoutStatus {
       super.writeByte(129)
       super.writeValue(value.rawValue)
-    } else if let value = value as? NativeEventType {
+    } else if let value = value as? NativeCloseButtonStyle {
       super.writeByte(130)
       super.writeValue(value.rawValue)
-    } else if let value = value as? StartRequest {
+    } else if let value = value as? NativeCloseButtonPosition {
       super.writeByte(131)
+      super.writeValue(value.rawValue)
+    } else if let value = value as? NativeDismissButtonStyle {
+      super.writeByte(132)
+      super.writeValue(value.rawValue)
+    } else if let value = value as? NativePresentationStyle {
+      super.writeByte(133)
+      super.writeValue(value.rawValue)
+    } else if let value = value as? NativeBrowserColorScheme {
+      super.writeByte(134)
+      super.writeValue(value.rawValue)
+    } else if let value = value as? NativeEventType {
+      super.writeByte(135)
+      super.writeValue(value.rawValue)
+    } else if let value = value as? StartRequest {
+      super.writeByte(136)
+      super.writeValue(value.toList())
+    } else if let value = value as? NativeBrowserCustomization {
+      super.writeByte(137)
+      super.writeValue(value.toList())
+    } else if let value = value as? NativeAndroidBrowserOptions {
+      super.writeByte(138)
+      super.writeValue(value.toList())
+    } else if let value = value as? NativeIosBrowserOptions {
+      super.writeByte(139)
       super.writeValue(value.toList())
     } else if let value = value as? NativeCheckoutResult {
-      super.writeByte(132)
+      super.writeByte(140)
       super.writeValue(value.toList())
     } else if let value = value as? NativeAbandonedSession {
-      super.writeByte(133)
+      super.writeByte(141)
       super.writeValue(value.toList())
     } else if let value = value as? NativeCheckoutEvent {
-      super.writeByte(134)
+      super.writeByte(142)
       super.writeValue(value.toList())
     } else {
       super.writeValue(value)

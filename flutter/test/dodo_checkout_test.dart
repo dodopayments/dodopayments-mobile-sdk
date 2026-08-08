@@ -1,3 +1,5 @@
+import 'dart:ui' show Color;
+
 import 'package:dodopayments_checkout/dodopayments_checkout.dart';
 import 'package:dodopayments_checkout/src/messages.g.dart';
 import 'package:flutter/services.dart' show PlatformException;
@@ -68,6 +70,142 @@ void main() {
       expect(request.checkoutUrl,
           'https://test.checkout.dodopayments.com/session/cks_test_123');
       expect(request.returnUrl, 'myapp://checkout/return');
+    });
+
+    test('customization is null when not given', () async {
+      api.startResult = nativeResult();
+      await checkout.start(params);
+      expect(api.lastStartRequest!.customization, isNull);
+    });
+
+    test(
+        'AndroidBrowserOptions/IosBrowserOptions default every field to '
+        'null so nothing is asserted on the platforms\' behalf', () {
+      // null isn't resolved to a fallback anywhere in Dart — it crosses the
+      // channel as-is, and the native side decides what "unset" means
+      // (usually: don't touch the platform's own setter at all). This is
+      // deliberate: hardcoding a guess at "the platform default" here can go
+      // stale the moment the OS changes it (confirmed happening twice for
+      // iOS's dismissButtonStyle/barCollapsingEnabled during development).
+      const android = AndroidBrowserOptions();
+      expect(android.toolbarColor, isNull);
+      expect(android.closeButtonStyle, isNull);
+      expect(android.closeButtonPosition, isNull);
+      expect(android.shareButtonEnabled, isNull);
+      expect(android.showTitleEnabled, isNull);
+      expect(android.urlBarHidingEnabled, isNull);
+      expect(android.bookmarksButtonEnabled, isNull);
+      expect(android.downloadsButtonEnabled, isNull);
+      expect(android.colorScheme, isNull);
+
+      const ios = IosBrowserOptions();
+      expect(ios.dismissButtonStyle, isNull);
+      expect(ios.barCollapsingEnabled, isNull);
+      expect(ios.presentationStyle, isNull);
+      expect(ios.colorScheme, isNull);
+    });
+
+    test(
+        'an explicit-but-empty android/ios bag maps every field to null, '
+        'not to a fallback', () async {
+      api.startResult = nativeResult();
+      await checkout.start(CheckoutParams(
+        checkoutUrl: params.checkoutUrl,
+        returnUrl: params.returnUrl,
+        customization: const BrowserCustomization(
+          android: AndroidBrowserOptions(),
+          ios: IosBrowserOptions(),
+        ),
+      ));
+
+      final NativeAndroidBrowserOptions android =
+          api.lastStartRequest!.customization!.android!;
+      expect(android.toolbarColor, isNull);
+      expect(android.closeButtonStyle, isNull);
+      expect(android.closeButtonPosition, isNull);
+      expect(android.shareButtonEnabled, isNull);
+      expect(android.showTitleEnabled, isNull);
+      expect(android.urlBarHidingEnabled, isNull);
+      expect(android.bookmarksButtonEnabled, isNull);
+      expect(android.downloadsButtonEnabled, isNull);
+      expect(android.colorScheme, isNull);
+
+      final NativeIosBrowserOptions ios =
+          api.lastStartRequest!.customization!.ios!;
+      expect(ios.dismissButtonStyle, isNull);
+      expect(ios.barCollapsingEnabled, isNull);
+      expect(ios.presentationStyle, isNull);
+      expect(ios.colorScheme, isNull);
+    });
+
+    test('maps every customization field', () async {
+      api.startResult = nativeResult();
+      await checkout.start(CheckoutParams(
+        checkoutUrl: params.checkoutUrl,
+        returnUrl: params.returnUrl,
+        customization: const BrowserCustomization(
+          android: AndroidBrowserOptions(
+            toolbarColor: Color(0xFF112233),
+            closeButtonStyle: CloseButtonStyle.back,
+            closeButtonPosition: CloseButtonPosition.end,
+            shareButtonEnabled: false,
+            showTitleEnabled: true,
+            urlBarHidingEnabled: true,
+            bookmarksButtonEnabled: false,
+            downloadsButtonEnabled: false,
+            secondaryToolbarColor: Color(0xFF445566),
+            navigationBarColor: Color(0xFF778899),
+            navigationBarDividerColor: Color(0xFFAABBCC),
+            colorScheme: BrowserColorScheme.dark,
+          ),
+          ios: IosBrowserOptions(
+            dismissButtonStyle: DismissButtonStyle.cancel,
+            barCollapsingEnabled: true,
+            presentationStyle: PresentationStyle.fullScreen,
+            colorScheme: BrowserColorScheme.light,
+          ),
+        ),
+      ));
+
+      final NativeBrowserCustomization native =
+          api.lastStartRequest!.customization!;
+
+      final NativeAndroidBrowserOptions android = native.android!;
+      expect(android.toolbarColor, const Color(0xFF112233).toARGB32());
+      expect(android.closeButtonStyle, NativeCloseButtonStyle.back);
+      expect(android.closeButtonPosition, NativeCloseButtonPosition.end);
+      expect(android.shareButtonEnabled, isFalse);
+      expect(android.showTitleEnabled, isTrue);
+      expect(android.urlBarHidingEnabled, isTrue);
+      expect(android.bookmarksButtonEnabled, isFalse);
+      expect(android.downloadsButtonEnabled, isFalse);
+      expect(android.secondaryToolbarColor,
+          const Color(0xFF445566).toARGB32());
+      expect(android.navigationBarColor, const Color(0xFF778899).toARGB32());
+      expect(android.navigationBarDividerColor,
+          const Color(0xFFAABBCC).toARGB32());
+      expect(android.colorScheme, NativeBrowserColorScheme.dark);
+
+      final NativeIosBrowserOptions ios = native.ios!;
+      expect(ios.dismissButtonStyle, NativeDismissButtonStyle.cancel);
+      expect(ios.barCollapsingEnabled, isTrue);
+      expect(ios.presentationStyle, NativePresentationStyle.fullScreen);
+      expect(ios.colorScheme, NativeBrowserColorScheme.light);
+    });
+
+    test('customization with no android/ios bag maps both to null',
+        () async {
+      api.startResult = nativeResult();
+      await checkout.start(CheckoutParams(
+        checkoutUrl: params.checkoutUrl,
+        returnUrl: params.returnUrl,
+        customization: const BrowserCustomization(),
+      ));
+
+      final NativeBrowserCustomization native =
+          api.lastStartRequest!.customization!;
+      expect(native.android, isNull);
+      expect(native.ios, isNull);
     });
   });
 
