@@ -2,6 +2,7 @@ package com.dodopayments.checkout_flutter
 
 import android.app.Activity
 import android.content.Context
+import com.dodopayments.checkout.BrowserCustomization
 import com.dodopayments.checkout.CheckoutError
 import com.dodopayments.checkout.CheckoutEvent
 import com.dodopayments.checkout.CheckoutParams
@@ -82,7 +83,8 @@ class DodoCheckoutFlutterPlugin : FlutterPlugin, ActivityAware, DodoCheckoutHost
                 activity,
                 CheckoutParams(
                     checkoutUrl = request.checkoutUrl,
-                    returnUrl = request.returnUrl)) { event ->
+                    returnUrl = request.returnUrl,
+                    customization = request.customization.toCore())) { event ->
               flutterApi?.onCheckoutEvent(event.toNative()) {}
             }
         callback(Result.success(result.toNative()))
@@ -126,6 +128,45 @@ private fun CheckoutEvent.toNative(): NativeCheckoutEvent {
         NativeCheckoutEvent(type = NativeEventType.RETURN_RECEIVED)
     is CheckoutEvent.Closed -> NativeCheckoutEvent(type = NativeEventType.CLOSED)
   }
+}
+
+// Only the "android" sub-object is read — "ios" (if present) is for the
+// iOS plugin's own mapping, not this one. `null` (absent) is passed straight
+// through to BrowserCustomization rather than resolved to a fallback here —
+// the core itself decides what "unset" means (usually: don't call the
+// corresponding CustomTabsIntent.Builder setter at all).
+private fun NativeBrowserCustomization?.toCore(): BrowserCustomization {
+  if (this == null) return BrowserCustomization()
+  val android = android
+  return BrowserCustomization(
+      toolbarColor = android?.toolbarColor?.toInt(),
+      secondaryToolbarColor = android?.secondaryToolbarColor?.toInt(),
+      navigationBarColor = android?.navigationBarColor?.toInt(),
+      navigationBarDividerColor = android?.navigationBarDividerColor?.toInt(),
+      closeButtonStyle =
+          when (android?.closeButtonStyle) {
+            NativeCloseButtonStyle.BACK -> BrowserCustomization.CloseButtonStyle.BACK
+            NativeCloseButtonStyle.STANDARD -> BrowserCustomization.CloseButtonStyle.DEFAULT
+            null -> null
+          },
+      closeButtonPosition =
+          when (android?.closeButtonPosition) {
+            NativeCloseButtonPosition.END -> BrowserCustomization.CloseButtonPosition.END
+            NativeCloseButtonPosition.START -> BrowserCustomization.CloseButtonPosition.START
+            null -> null
+          },
+      shareButtonEnabled = android?.shareButtonEnabled,
+      showTitleEnabled = android?.showTitleEnabled,
+      urlBarHidingEnabled = android?.urlBarHidingEnabled,
+      bookmarksButtonEnabled = android?.bookmarksButtonEnabled,
+      downloadsButtonEnabled = android?.downloadsButtonEnabled,
+      colorScheme =
+          when (android?.colorScheme) {
+            NativeBrowserColorScheme.LIGHT -> BrowserCustomization.ColorScheme.LIGHT
+            NativeBrowserColorScheme.DARK -> BrowserCustomization.ColorScheme.DARK
+            NativeBrowserColorScheme.SYSTEM -> BrowserCustomization.ColorScheme.SYSTEM
+            null -> null
+          })
 }
 
 private fun com.dodopayments.checkout.CheckoutResult.toNative(): NativeCheckoutResult {

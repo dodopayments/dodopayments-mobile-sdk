@@ -122,6 +122,74 @@ class DodoCheckout {
     return StartRequest(
       checkoutUrl: params.checkoutUrl.toString(),
       returnUrl: params.returnUrl.toString(),
+      customization: _toNativeBrowserCustomization(
+        params.customization,
+      ),
+    );
+  }
+
+  static NativeBrowserCustomization? _toNativeBrowserCustomization(
+    BrowserCustomization? customization,
+  ) {
+    if (customization == null) return null;
+    final AndroidBrowserOptions? android = customization.android;
+    final IosBrowserOptions? ios = customization.ios;
+    return NativeBrowserCustomization(
+      android: android == null
+          ? null
+          : NativeAndroidBrowserOptions(
+              toolbarColor: android.toolbarColor?.toARGB32(),
+              closeButtonStyle: switch (android.closeButtonStyle) {
+                null => null,
+                CloseButtonStyle.standard => NativeCloseButtonStyle.standard,
+                CloseButtonStyle.back => NativeCloseButtonStyle.back,
+              },
+              closeButtonPosition: switch (android.closeButtonPosition) {
+                null => null,
+                CloseButtonPosition.start => NativeCloseButtonPosition.start,
+                CloseButtonPosition.end => NativeCloseButtonPosition.end,
+              },
+              shareButtonEnabled: android.shareButtonEnabled,
+              showTitleEnabled: android.showTitleEnabled,
+              urlBarHidingEnabled: android.urlBarHidingEnabled,
+              bookmarksButtonEnabled: android.bookmarksButtonEnabled,
+              downloadsButtonEnabled: android.downloadsButtonEnabled,
+              secondaryToolbarColor: android.secondaryToolbarColor
+                  ?.toARGB32(),
+              navigationBarColor: android.navigationBarColor?.toARGB32(),
+              navigationBarDividerColor: android.navigationBarDividerColor
+                  ?.toARGB32(),
+              colorScheme: switch (android.colorScheme) {
+                null => null,
+                BrowserColorScheme.system => NativeBrowserColorScheme.system,
+                BrowserColorScheme.light => NativeBrowserColorScheme.light,
+                BrowserColorScheme.dark => NativeBrowserColorScheme.dark,
+              },
+            ),
+      ios: ios == null
+          ? null
+          : NativeIosBrowserOptions(
+              dismissButtonStyle: switch (ios.dismissButtonStyle) {
+                null => null,
+                DismissButtonStyle.done => NativeDismissButtonStyle.done,
+                DismissButtonStyle.close => NativeDismissButtonStyle.close,
+                DismissButtonStyle.cancel => NativeDismissButtonStyle.cancel,
+              },
+              barCollapsingEnabled: ios.barCollapsingEnabled,
+              presentationStyle: switch (ios.presentationStyle) {
+                null => null,
+                PresentationStyle.pageSheet =>
+                  NativePresentationStyle.pageSheet,
+                PresentationStyle.fullScreen =>
+                  NativePresentationStyle.fullScreen,
+              },
+              colorScheme: switch (ios.colorScheme) {
+                null => null,
+                BrowserColorScheme.system => NativeBrowserColorScheme.system,
+                BrowserColorScheme.light => NativeBrowserColorScheme.light,
+                BrowserColorScheme.dark => NativeBrowserColorScheme.dark,
+              },
+            ),
     );
   }
 

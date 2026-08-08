@@ -211,6 +211,82 @@ enum class NativeCheckoutStatus(val raw: Int) {
 }
 
 /**
+ * `standard` (not `default` — a reserved Dart keyword) is the system "X"
+ * icon on Android; `back` is a back-arrow icon the SDK draws itself. No
+ * iOS equivalent — see [NativeDismissButtonStyle] for iOS's dismiss button.
+ */
+enum class NativeCloseButtonStyle(val raw: Int) {
+  STANDARD(0),
+  BACK(1);
+
+  companion object {
+    fun ofRaw(raw: Int): NativeCloseButtonStyle? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
+enum class NativeCloseButtonPosition(val raw: Int) {
+  START(0),
+  END(1);
+
+  companion object {
+    fun ofRaw(raw: Int): NativeCloseButtonPosition? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
+/**
+ * Mirrors `SFSafariViewController.DismissButtonStyle`. No Android
+ * equivalent — see [NativeCloseButtonStyle] for Android's close button.
+ */
+enum class NativeDismissButtonStyle(val raw: Int) {
+  DONE(0),
+  CLOSE(1),
+  CANCEL(2);
+
+  companion object {
+    fun ofRaw(raw: Int): NativeDismissButtonStyle? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
+/**
+ * Mirrors `UIViewController.modalPresentationStyle` as used to present the
+ * checkout sheet. No Android equivalent — Custom Tabs has no comparable
+ * page-sheet-vs-full-screen distinction in this SDK.
+ */
+enum class NativePresentationStyle(val raw: Int) {
+  PAGE_SHEET(0),
+  FULL_SCREEN(1);
+
+  companion object {
+    fun ofRaw(raw: Int): NativePresentationStyle? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
+/**
+ * Forces the browser's light/dark appearance regardless of the system
+ * setting. Exists independently on `android` and `ios` (not shared) even
+ * though the values are identical, matching every other field here.
+ */
+enum class NativeBrowserColorScheme(val raw: Int) {
+  SYSTEM(0),
+  LIGHT(1),
+  DARK(2);
+
+  companion object {
+    fun ofRaw(raw: Int): NativeBrowserColorScheme? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
+/**
  * Mirrors `CheckoutEvent` in the native cores. Lifecycle-only — never used
  * to decide the checkout outcome.
  */
@@ -236,20 +312,24 @@ data class StartRequest (
    * activity (Android), so the OS routes the checkout return back to this
    * app.
    */
-  val returnUrl: String
+  val returnUrl: String,
+  /** Appearance customization for the checkout browser. */
+  val customization: NativeBrowserCustomization? = null
 )
  {
   companion object {
     fun fromList(pigeonVar_list: List<Any?>): StartRequest {
       val checkoutUrl = pigeonVar_list[0] as String
       val returnUrl = pigeonVar_list[1] as String
-      return StartRequest(checkoutUrl, returnUrl)
+      val customization = pigeonVar_list[2] as NativeBrowserCustomization?
+      return StartRequest(checkoutUrl, returnUrl, customization)
     }
   }
   fun toList(): List<Any?> {
     return listOf(
       checkoutUrl,
       returnUrl,
+      customization,
     )
   }
   override fun equals(other: Any?): Boolean {
@@ -260,17 +340,241 @@ data class StartRequest (
       return true
     }
     val other = other as StartRequest
-    return MessagesPigeonUtils.deepEquals(this.checkoutUrl, other.checkoutUrl) && MessagesPigeonUtils.deepEquals(this.returnUrl, other.returnUrl)
+    return MessagesPigeonUtils.deepEquals(this.checkoutUrl, other.checkoutUrl) && MessagesPigeonUtils.deepEquals(this.returnUrl, other.returnUrl) && MessagesPigeonUtils.deepEquals(this.customization, other.customization)
   }
 
   override fun hashCode(): Int {
     var result = javaClass.hashCode()
     result = 31 * result + MessagesPigeonUtils.deepHash(this.checkoutUrl)
     result = 31 * result + MessagesPigeonUtils.deepHash(this.returnUrl)
+    result = 31 * result + MessagesPigeonUtils.deepHash(this.customization)
     return result
   }
   override fun toString(): String {
-    return "StartRequest(checkoutUrl=$checkoutUrl, returnUrl=$returnUrl)"
+    return "StartRequest(checkoutUrl=$checkoutUrl, returnUrl=$returnUrl, customization=$customization)"
+  }
+}
+
+/**
+ * Mirrors the native `BrowserCustomization`. `android`/`ios` carry options
+ * that only exist on that one platform — native only ever reads its own
+ * bag, so this crosses both platforms from one Dart type without either
+ * side seeing the other's fields.
+ *
+ * No shared/top-level fields: `toolbarColor` was originally shared, but
+ * iOS's equivalent (`preferredBarTintColor`) is deprecated as of iOS 26
+ * with no replacement and confirmed to have no visible effect there — not
+ * worth a color knob that's already inert on the majority of iOS devices.
+ * Same reasoning killed iOS's `controlTintColor` outright (it rested on
+ * the identically-deprecated `preferredControlTintColor`).
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class NativeBrowserCustomization (
+  val android: NativeAndroidBrowserOptions? = null,
+  val ios: NativeIosBrowserOptions? = null
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): NativeBrowserCustomization {
+      val android = pigeonVar_list[0] as NativeAndroidBrowserOptions?
+      val ios = pigeonVar_list[1] as NativeIosBrowserOptions?
+      return NativeBrowserCustomization(android, ios)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      android,
+      ios,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other == null || other.javaClass != javaClass) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    val other = other as NativeBrowserCustomization
+    return MessagesPigeonUtils.deepEquals(this.android, other.android) && MessagesPigeonUtils.deepEquals(this.ios, other.ios)
+  }
+
+  override fun hashCode(): Int {
+    var result = javaClass.hashCode()
+    result = 31 * result + MessagesPigeonUtils.deepHash(this.android)
+    result = 31 * result + MessagesPigeonUtils.deepHash(this.ios)
+    return result
+  }
+  override fun toString(): String {
+    return "NativeBrowserCustomization(android=$android, ios=$ios)"
+  }
+}
+
+/**
+ * Every field is `null` by default. `null` isn't resolved to a fallback
+ * anywhere in Dart — it crosses the channel as-is, and the native side
+ * decides what "unset" means (usually: don't call the corresponding
+ * `CustomTabsIntent.Builder` setter at all, so the Custom Tab host's own
+ * live default applies). This is deliberate: hardcoding a guess at "the
+ * platform default" in Dart can go stale the moment the host changes it,
+ * silently changing behavior for every integrator who never touched that
+ * field.
+ *
+ * Pigeon encodes this class as a fixed-position list, not a keyed map —
+ * `decode()` reads `result[0]`, `result[1]`, ... by index, matching
+ * declaration order exactly. Future fields must be appended at the end,
+ * never inserted, or every field after the insertion point silently reads
+ * the wrong value. Regenerate all three codegen targets together after any
+ * change (`dart run pigeon --input pigeons/messages.dart`).
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class NativeAndroidBrowserOptions (
+  /** ARGB, i.e. `Color.toARGB32()`. */
+  val toolbarColor: Long? = null,
+  val closeButtonStyle: NativeCloseButtonStyle? = null,
+  val closeButtonPosition: NativeCloseButtonPosition? = null,
+  /** Hides the toolbar's share icon when `false`. */
+  val shareButtonEnabled: Boolean? = null,
+  val showTitleEnabled: Boolean? = null,
+  val urlBarHidingEnabled: Boolean? = null,
+  val bookmarksButtonEnabled: Boolean? = null,
+  val downloadsButtonEnabled: Boolean? = null,
+  val secondaryToolbarColor: Long? = null,
+  val navigationBarColor: Long? = null,
+  val navigationBarDividerColor: Long? = null,
+  val colorScheme: NativeBrowserColorScheme? = null
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): NativeAndroidBrowserOptions {
+      val toolbarColor = pigeonVar_list[0] as Long?
+      val closeButtonStyle = pigeonVar_list[1] as NativeCloseButtonStyle?
+      val closeButtonPosition = pigeonVar_list[2] as NativeCloseButtonPosition?
+      val shareButtonEnabled = pigeonVar_list[3] as Boolean?
+      val showTitleEnabled = pigeonVar_list[4] as Boolean?
+      val urlBarHidingEnabled = pigeonVar_list[5] as Boolean?
+      val bookmarksButtonEnabled = pigeonVar_list[6] as Boolean?
+      val downloadsButtonEnabled = pigeonVar_list[7] as Boolean?
+      val secondaryToolbarColor = pigeonVar_list[8] as Long?
+      val navigationBarColor = pigeonVar_list[9] as Long?
+      val navigationBarDividerColor = pigeonVar_list[10] as Long?
+      val colorScheme = pigeonVar_list[11] as NativeBrowserColorScheme?
+      return NativeAndroidBrowserOptions(toolbarColor, closeButtonStyle, closeButtonPosition, shareButtonEnabled, showTitleEnabled, urlBarHidingEnabled, bookmarksButtonEnabled, downloadsButtonEnabled, secondaryToolbarColor, navigationBarColor, navigationBarDividerColor, colorScheme)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      toolbarColor,
+      closeButtonStyle,
+      closeButtonPosition,
+      shareButtonEnabled,
+      showTitleEnabled,
+      urlBarHidingEnabled,
+      bookmarksButtonEnabled,
+      downloadsButtonEnabled,
+      secondaryToolbarColor,
+      navigationBarColor,
+      navigationBarDividerColor,
+      colorScheme,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other == null || other.javaClass != javaClass) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    val other = other as NativeAndroidBrowserOptions
+    return MessagesPigeonUtils.deepEquals(this.toolbarColor, other.toolbarColor) && MessagesPigeonUtils.deepEquals(this.closeButtonStyle, other.closeButtonStyle) && MessagesPigeonUtils.deepEquals(this.closeButtonPosition, other.closeButtonPosition) && MessagesPigeonUtils.deepEquals(this.shareButtonEnabled, other.shareButtonEnabled) && MessagesPigeonUtils.deepEquals(this.showTitleEnabled, other.showTitleEnabled) && MessagesPigeonUtils.deepEquals(this.urlBarHidingEnabled, other.urlBarHidingEnabled) && MessagesPigeonUtils.deepEquals(this.bookmarksButtonEnabled, other.bookmarksButtonEnabled) && MessagesPigeonUtils.deepEquals(this.downloadsButtonEnabled, other.downloadsButtonEnabled) && MessagesPigeonUtils.deepEquals(this.secondaryToolbarColor, other.secondaryToolbarColor) && MessagesPigeonUtils.deepEquals(this.navigationBarColor, other.navigationBarColor) && MessagesPigeonUtils.deepEquals(this.navigationBarDividerColor, other.navigationBarDividerColor) && MessagesPigeonUtils.deepEquals(this.colorScheme, other.colorScheme)
+  }
+
+  override fun hashCode(): Int {
+    var result = javaClass.hashCode()
+    result = 31 * result + MessagesPigeonUtils.deepHash(this.toolbarColor)
+    result = 31 * result + MessagesPigeonUtils.deepHash(this.closeButtonStyle)
+    result = 31 * result + MessagesPigeonUtils.deepHash(this.closeButtonPosition)
+    result = 31 * result + MessagesPigeonUtils.deepHash(this.shareButtonEnabled)
+    result = 31 * result + MessagesPigeonUtils.deepHash(this.showTitleEnabled)
+    result = 31 * result + MessagesPigeonUtils.deepHash(this.urlBarHidingEnabled)
+    result = 31 * result + MessagesPigeonUtils.deepHash(this.bookmarksButtonEnabled)
+    result = 31 * result + MessagesPigeonUtils.deepHash(this.downloadsButtonEnabled)
+    result = 31 * result + MessagesPigeonUtils.deepHash(this.secondaryToolbarColor)
+    result = 31 * result + MessagesPigeonUtils.deepHash(this.navigationBarColor)
+    result = 31 * result + MessagesPigeonUtils.deepHash(this.navigationBarDividerColor)
+    result = 31 * result + MessagesPigeonUtils.deepHash(this.colorScheme)
+    return result
+  }
+  override fun toString(): String {
+    return "NativeAndroidBrowserOptions(toolbarColor=$toolbarColor, closeButtonStyle=$closeButtonStyle, closeButtonPosition=$closeButtonPosition, shareButtonEnabled=$shareButtonEnabled, showTitleEnabled=$showTitleEnabled, urlBarHidingEnabled=$urlBarHidingEnabled, bookmarksButtonEnabled=$bookmarksButtonEnabled, downloadsButtonEnabled=$downloadsButtonEnabled, secondaryToolbarColor=$secondaryToolbarColor, navigationBarColor=$navigationBarColor, navigationBarDividerColor=$navigationBarDividerColor, colorScheme=$colorScheme)"
+  }
+}
+
+/**
+ * Every field is `null` by default. `null` isn't resolved to a fallback
+ * anywhere in Dart — it crosses the channel as-is, and the native side
+ * decides what "unset" means (usually: don't touch the corresponding
+ * `SFSafariViewController` property at all, so the OS's own live default
+ * applies). This is deliberate: hardcoding a guess at "the platform
+ * default" in Dart can go stale the moment Apple changes it, silently
+ * changing behavior for every integrator who never touched that field.
+ *
+ * Same fixed-position wire encoding as [NativeAndroidBrowserOptions] —
+ * append future fields at the end, never insert.
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class NativeIosBrowserOptions (
+  val dismissButtonStyle: NativeDismissButtonStyle? = null,
+  /**
+   * Only has a visible effect when [presentationStyle] is `fullScreen` —
+   * confirmed by hands-on testing that `pageSheet` keeps the bars pinned
+   * regardless of this setting.
+   */
+  val barCollapsingEnabled: Boolean? = null,
+  val presentationStyle: NativePresentationStyle? = null,
+  val colorScheme: NativeBrowserColorScheme? = null
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): NativeIosBrowserOptions {
+      val dismissButtonStyle = pigeonVar_list[0] as NativeDismissButtonStyle?
+      val barCollapsingEnabled = pigeonVar_list[1] as Boolean?
+      val presentationStyle = pigeonVar_list[2] as NativePresentationStyle?
+      val colorScheme = pigeonVar_list[3] as NativeBrowserColorScheme?
+      return NativeIosBrowserOptions(dismissButtonStyle, barCollapsingEnabled, presentationStyle, colorScheme)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      dismissButtonStyle,
+      barCollapsingEnabled,
+      presentationStyle,
+      colorScheme,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other == null || other.javaClass != javaClass) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    val other = other as NativeIosBrowserOptions
+    return MessagesPigeonUtils.deepEquals(this.dismissButtonStyle, other.dismissButtonStyle) && MessagesPigeonUtils.deepEquals(this.barCollapsingEnabled, other.barCollapsingEnabled) && MessagesPigeonUtils.deepEquals(this.presentationStyle, other.presentationStyle) && MessagesPigeonUtils.deepEquals(this.colorScheme, other.colorScheme)
+  }
+
+  override fun hashCode(): Int {
+    var result = javaClass.hashCode()
+    result = 31 * result + MessagesPigeonUtils.deepHash(this.dismissButtonStyle)
+    result = 31 * result + MessagesPigeonUtils.deepHash(this.barCollapsingEnabled)
+    result = 31 * result + MessagesPigeonUtils.deepHash(this.presentationStyle)
+    result = 31 * result + MessagesPigeonUtils.deepHash(this.colorScheme)
+    return result
+  }
+  override fun toString(): String {
+    return "NativeIosBrowserOptions(dismissButtonStyle=$dismissButtonStyle, barCollapsingEnabled=$barCollapsingEnabled, presentationStyle=$presentationStyle, colorScheme=$colorScheme)"
   }
 }
 
@@ -428,25 +732,65 @@ private open class MessagesPigeonCodec : StandardMessageCodec() {
       }
       130.toByte() -> {
         return (readValue(buffer) as Long?)?.let {
-          NativeEventType.ofRaw(it.toInt())
+          NativeCloseButtonStyle.ofRaw(it.toInt())
         }
       }
       131.toByte() -> {
+        return (readValue(buffer) as Long?)?.let {
+          NativeCloseButtonPosition.ofRaw(it.toInt())
+        }
+      }
+      132.toByte() -> {
+        return (readValue(buffer) as Long?)?.let {
+          NativeDismissButtonStyle.ofRaw(it.toInt())
+        }
+      }
+      133.toByte() -> {
+        return (readValue(buffer) as Long?)?.let {
+          NativePresentationStyle.ofRaw(it.toInt())
+        }
+      }
+      134.toByte() -> {
+        return (readValue(buffer) as Long?)?.let {
+          NativeBrowserColorScheme.ofRaw(it.toInt())
+        }
+      }
+      135.toByte() -> {
+        return (readValue(buffer) as Long?)?.let {
+          NativeEventType.ofRaw(it.toInt())
+        }
+      }
+      136.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           StartRequest.fromList(it)
         }
       }
-      132.toByte() -> {
+      137.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          NativeBrowserCustomization.fromList(it)
+        }
+      }
+      138.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          NativeAndroidBrowserOptions.fromList(it)
+        }
+      }
+      139.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          NativeIosBrowserOptions.fromList(it)
+        }
+      }
+      140.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           NativeCheckoutResult.fromList(it)
         }
       }
-      133.toByte() -> {
+      141.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           NativeAbandonedSession.fromList(it)
         }
       }
-      134.toByte() -> {
+      142.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           NativeCheckoutEvent.fromList(it)
         }
@@ -460,24 +804,56 @@ private open class MessagesPigeonCodec : StandardMessageCodec() {
         stream.write(129)
         writeValue(stream, value.raw.toLong())
       }
-      is NativeEventType -> {
+      is NativeCloseButtonStyle -> {
         stream.write(130)
         writeValue(stream, value.raw.toLong())
       }
-      is StartRequest -> {
+      is NativeCloseButtonPosition -> {
         stream.write(131)
+        writeValue(stream, value.raw.toLong())
+      }
+      is NativeDismissButtonStyle -> {
+        stream.write(132)
+        writeValue(stream, value.raw.toLong())
+      }
+      is NativePresentationStyle -> {
+        stream.write(133)
+        writeValue(stream, value.raw.toLong())
+      }
+      is NativeBrowserColorScheme -> {
+        stream.write(134)
+        writeValue(stream, value.raw.toLong())
+      }
+      is NativeEventType -> {
+        stream.write(135)
+        writeValue(stream, value.raw.toLong())
+      }
+      is StartRequest -> {
+        stream.write(136)
+        writeValue(stream, value.toList())
+      }
+      is NativeBrowserCustomization -> {
+        stream.write(137)
+        writeValue(stream, value.toList())
+      }
+      is NativeAndroidBrowserOptions -> {
+        stream.write(138)
+        writeValue(stream, value.toList())
+      }
+      is NativeIosBrowserOptions -> {
+        stream.write(139)
         writeValue(stream, value.toList())
       }
       is NativeCheckoutResult -> {
-        stream.write(132)
+        stream.write(140)
         writeValue(stream, value.toList())
       }
       is NativeAbandonedSession -> {
-        stream.write(133)
+        stream.write(141)
         writeValue(stream, value.toList())
       }
       is NativeCheckoutEvent -> {
-        stream.write(134)
+        stream.write(142)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)

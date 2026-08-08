@@ -139,6 +139,10 @@ Future<void> reconcileAbandonedSession() async {
 }
 ```
 
+## Customization
+
+The checkout browser's toolbar, buttons, and color scheme can be customized via `customization` on `CheckoutParams`. See the [Appearance Customization docs](https://docs.dodopayments.com/developer-resources/sdks/flutter#appearance-customization) for all available options.
+
 ## Errors
 
 `start` throws `CheckoutException` only for misuse or platform failure. The

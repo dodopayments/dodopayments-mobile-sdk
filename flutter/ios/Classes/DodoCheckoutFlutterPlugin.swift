@@ -56,11 +56,14 @@ extension DodoCheckoutFlutterPlugin: DodoCheckoutHostApi {
     // platform channel calls must happen on the main thread anyway — no
     // actual race, same reasoning as `completion` above.
     nonisolated(unsafe) let flutterApi = self.flutterApi
+    let customization = Self.toCore(request.customization)
+
     Task {
       do {
         let result = try await DodoCheckout.start(
           checkoutUrl: checkoutUrl,
           returnUrl: returnUrl,
+          customization: customization,
           onEvent: { event in
             flutterApi?.onCheckoutEvent(event: Self.toNative(event)) { _ in }
           }
@@ -104,6 +107,42 @@ extension DodoCheckoutFlutterPlugin: DodoCheckoutHostApi {
   }
 
   // -- Mapping helpers -------------------------------------------------------
+
+  // Only the "ios" sub-object is read — "android" (if present) is for the
+  // Android plugin's own mapping, not this one. `nil` (absent) is passed
+  // straight through to BrowserCustomization rather than resolved to a
+  // fallback here — the core itself decides what "unset" means (usually:
+  // don't touch the corresponding SFSafariViewController property at all).
+  private static func toCore(_ native: NativeBrowserCustomization?) -> BrowserCustomization {
+    guard let native else { return BrowserCustomization() }
+    let ios = native.ios
+    return BrowserCustomization(
+      dismissButtonStyle: {
+        switch ios?.dismissButtonStyle {
+        case .close: return .close
+        case .cancel: return .cancel
+        case .done: return .done
+        case nil: return nil
+        }
+      }(),
+      barCollapsingEnabled: ios?.barCollapsingEnabled,
+      presentationStyle: {
+        switch ios?.presentationStyle {
+        case .fullScreen: return .fullScreen
+        case .pageSheet: return .pageSheet
+        case nil: return nil
+        }
+      }(),
+      colorScheme: {
+        switch ios?.colorScheme {
+        case .light: return .light
+        case .dark: return .dark
+        case .system: return .system
+        case nil: return nil
+        }
+      }()
+    )
+  }
 
   private static func toNative(_ event: CheckoutEvent) -> NativeCheckoutEvent {
     switch event {

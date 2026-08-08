@@ -116,6 +116,44 @@ enum NativeCheckoutStatus {
   expired,
 }
 
+/// `standard` (not `default` — a reserved Dart keyword) is the system "X"
+/// icon on Android; `back` is a back-arrow icon the SDK draws itself. No
+/// iOS equivalent — see [NativeDismissButtonStyle] for iOS's dismiss button.
+enum NativeCloseButtonStyle {
+  standard,
+  back,
+}
+
+enum NativeCloseButtonPosition {
+  start,
+  end,
+}
+
+/// Mirrors `SFSafariViewController.DismissButtonStyle`. No Android
+/// equivalent — see [NativeCloseButtonStyle] for Android's close button.
+enum NativeDismissButtonStyle {
+  done,
+  close,
+  cancel,
+}
+
+/// Mirrors `UIViewController.modalPresentationStyle` as used to present the
+/// checkout sheet. No Android equivalent — Custom Tabs has no comparable
+/// page-sheet-vs-full-screen distinction in this SDK.
+enum NativePresentationStyle {
+  pageSheet,
+  fullScreen,
+}
+
+/// Forces the browser's light/dark appearance regardless of the system
+/// setting. Exists independently on `android` and `ios` (not shared) even
+/// though the values are identical, matching every other field here.
+enum NativeBrowserColorScheme {
+  system,
+  light,
+  dark,
+}
+
 /// Mirrors `CheckoutEvent` in the native cores. Lifecycle-only — never used
 /// to decide the checkout outcome.
 enum NativeEventType {
@@ -128,6 +166,7 @@ class StartRequest {
   StartRequest({
     required this.checkoutUrl,
     required this.returnUrl,
+    this.customization,
   });
 
   /// Absolute session URL from the merchant backend.
@@ -139,10 +178,14 @@ class StartRequest {
   /// app.
   String returnUrl;
 
+  /// Appearance customization for the checkout browser.
+  NativeBrowserCustomization? customization;
+
   List<Object?> _toList() {
     return <Object?>[
       checkoutUrl,
       returnUrl,
+      customization,
     ];
   }
 
@@ -154,6 +197,7 @@ class StartRequest {
     return StartRequest(
       checkoutUrl: result[0]! as String,
       returnUrl: result[1]! as String,
+      customization: result[2] as NativeBrowserCustomization?,
     );
   }
 
@@ -166,7 +210,7 @@ class StartRequest {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(checkoutUrl, other.checkoutUrl) && _deepEquals(returnUrl, other.returnUrl);
+    return _deepEquals(checkoutUrl, other.checkoutUrl) && _deepEquals(returnUrl, other.returnUrl) && _deepEquals(customization, other.customization);
   }
 
   @override
@@ -175,7 +219,258 @@ class StartRequest {
 
   @override
   String toString() {
-    return 'StartRequest(checkoutUrl: $checkoutUrl, returnUrl: $returnUrl)';
+    return 'StartRequest(checkoutUrl: $checkoutUrl, returnUrl: $returnUrl, customization: $customization)';
+  }
+}
+
+/// Mirrors the native `BrowserCustomization`. `android`/`ios` carry options
+/// that only exist on that one platform — native only ever reads its own
+/// bag, so this crosses both platforms from one Dart type without either
+/// side seeing the other's fields.
+///
+/// No shared/top-level fields: `toolbarColor` was originally shared, but
+/// iOS's equivalent (`preferredBarTintColor`) is deprecated as of iOS 26
+/// with no replacement and confirmed to have no visible effect there — not
+/// worth a color knob that's already inert on the majority of iOS devices.
+/// Same reasoning killed iOS's `controlTintColor` outright (it rested on
+/// the identically-deprecated `preferredControlTintColor`).
+class NativeBrowserCustomization {
+  NativeBrowserCustomization({
+    this.android,
+    this.ios,
+  });
+
+  NativeAndroidBrowserOptions? android;
+
+  NativeIosBrowserOptions? ios;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      android,
+      ios,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static NativeBrowserCustomization decode(Object result) {
+    result as List<Object?>;
+    return NativeBrowserCustomization(
+      android: result[0] as NativeAndroidBrowserOptions?,
+      ios: result[1] as NativeIosBrowserOptions?,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! NativeBrowserCustomization || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(android, other.android) && _deepEquals(ios, other.ios);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+
+  @override
+  String toString() {
+    return 'NativeBrowserCustomization(android: $android, ios: $ios)';
+  }
+}
+
+/// Every field is `null` by default. `null` isn't resolved to a fallback
+/// anywhere in Dart — it crosses the channel as-is, and the native side
+/// decides what "unset" means (usually: don't call the corresponding
+/// `CustomTabsIntent.Builder` setter at all, so the Custom Tab host's own
+/// live default applies). This is deliberate: hardcoding a guess at "the
+/// platform default" in Dart can go stale the moment the host changes it,
+/// silently changing behavior for every integrator who never touched that
+/// field.
+///
+/// Pigeon encodes this class as a fixed-position list, not a keyed map —
+/// `decode()` reads `result[0]`, `result[1]`, ... by index, matching
+/// declaration order exactly. Future fields must be appended at the end,
+/// never inserted, or every field after the insertion point silently reads
+/// the wrong value. Regenerate all three codegen targets together after any
+/// change (`dart run pigeon --input pigeons/messages.dart`).
+class NativeAndroidBrowserOptions {
+  NativeAndroidBrowserOptions({
+    this.toolbarColor,
+    this.closeButtonStyle,
+    this.closeButtonPosition,
+    this.shareButtonEnabled,
+    this.showTitleEnabled,
+    this.urlBarHidingEnabled,
+    this.bookmarksButtonEnabled,
+    this.downloadsButtonEnabled,
+    this.secondaryToolbarColor,
+    this.navigationBarColor,
+    this.navigationBarDividerColor,
+    this.colorScheme,
+  });
+
+  /// ARGB, i.e. `Color.toARGB32()`.
+  int? toolbarColor;
+
+  NativeCloseButtonStyle? closeButtonStyle;
+
+  NativeCloseButtonPosition? closeButtonPosition;
+
+  /// Hides the toolbar's share icon when `false`.
+  bool? shareButtonEnabled;
+
+  bool? showTitleEnabled;
+
+  bool? urlBarHidingEnabled;
+
+  bool? bookmarksButtonEnabled;
+
+  bool? downloadsButtonEnabled;
+
+  int? secondaryToolbarColor;
+
+  int? navigationBarColor;
+
+  int? navigationBarDividerColor;
+
+  NativeBrowserColorScheme? colorScheme;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      toolbarColor,
+      closeButtonStyle,
+      closeButtonPosition,
+      shareButtonEnabled,
+      showTitleEnabled,
+      urlBarHidingEnabled,
+      bookmarksButtonEnabled,
+      downloadsButtonEnabled,
+      secondaryToolbarColor,
+      navigationBarColor,
+      navigationBarDividerColor,
+      colorScheme,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static NativeAndroidBrowserOptions decode(Object result) {
+    result as List<Object?>;
+    return NativeAndroidBrowserOptions(
+      toolbarColor: result[0] as int?,
+      closeButtonStyle: result[1] as NativeCloseButtonStyle?,
+      closeButtonPosition: result[2] as NativeCloseButtonPosition?,
+      shareButtonEnabled: result[3] as bool?,
+      showTitleEnabled: result[4] as bool?,
+      urlBarHidingEnabled: result[5] as bool?,
+      bookmarksButtonEnabled: result[6] as bool?,
+      downloadsButtonEnabled: result[7] as bool?,
+      secondaryToolbarColor: result[8] as int?,
+      navigationBarColor: result[9] as int?,
+      navigationBarDividerColor: result[10] as int?,
+      colorScheme: result[11] as NativeBrowserColorScheme?,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! NativeAndroidBrowserOptions || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(toolbarColor, other.toolbarColor) && _deepEquals(closeButtonStyle, other.closeButtonStyle) && _deepEquals(closeButtonPosition, other.closeButtonPosition) && _deepEquals(shareButtonEnabled, other.shareButtonEnabled) && _deepEquals(showTitleEnabled, other.showTitleEnabled) && _deepEquals(urlBarHidingEnabled, other.urlBarHidingEnabled) && _deepEquals(bookmarksButtonEnabled, other.bookmarksButtonEnabled) && _deepEquals(downloadsButtonEnabled, other.downloadsButtonEnabled) && _deepEquals(secondaryToolbarColor, other.secondaryToolbarColor) && _deepEquals(navigationBarColor, other.navigationBarColor) && _deepEquals(navigationBarDividerColor, other.navigationBarDividerColor) && _deepEquals(colorScheme, other.colorScheme);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+
+  @override
+  String toString() {
+    return 'NativeAndroidBrowserOptions(toolbarColor: $toolbarColor, closeButtonStyle: $closeButtonStyle, closeButtonPosition: $closeButtonPosition, shareButtonEnabled: $shareButtonEnabled, showTitleEnabled: $showTitleEnabled, urlBarHidingEnabled: $urlBarHidingEnabled, bookmarksButtonEnabled: $bookmarksButtonEnabled, downloadsButtonEnabled: $downloadsButtonEnabled, secondaryToolbarColor: $secondaryToolbarColor, navigationBarColor: $navigationBarColor, navigationBarDividerColor: $navigationBarDividerColor, colorScheme: $colorScheme)';
+  }
+}
+
+/// Every field is `null` by default. `null` isn't resolved to a fallback
+/// anywhere in Dart — it crosses the channel as-is, and the native side
+/// decides what "unset" means (usually: don't touch the corresponding
+/// `SFSafariViewController` property at all, so the OS's own live default
+/// applies). This is deliberate: hardcoding a guess at "the platform
+/// default" in Dart can go stale the moment Apple changes it, silently
+/// changing behavior for every integrator who never touched that field.
+///
+/// Same fixed-position wire encoding as [NativeAndroidBrowserOptions] —
+/// append future fields at the end, never insert.
+class NativeIosBrowserOptions {
+  NativeIosBrowserOptions({
+    this.dismissButtonStyle,
+    this.barCollapsingEnabled,
+    this.presentationStyle,
+    this.colorScheme,
+  });
+
+  NativeDismissButtonStyle? dismissButtonStyle;
+
+  /// Only has a visible effect when [presentationStyle] is `fullScreen` —
+  /// confirmed by hands-on testing that `pageSheet` keeps the bars pinned
+  /// regardless of this setting.
+  bool? barCollapsingEnabled;
+
+  NativePresentationStyle? presentationStyle;
+
+  NativeBrowserColorScheme? colorScheme;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      dismissButtonStyle,
+      barCollapsingEnabled,
+      presentationStyle,
+      colorScheme,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static NativeIosBrowserOptions decode(Object result) {
+    result as List<Object?>;
+    return NativeIosBrowserOptions(
+      dismissButtonStyle: result[0] as NativeDismissButtonStyle?,
+      barCollapsingEnabled: result[1] as bool?,
+      presentationStyle: result[2] as NativePresentationStyle?,
+      colorScheme: result[3] as NativeBrowserColorScheme?,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! NativeIosBrowserOptions || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(dismissButtonStyle, other.dismissButtonStyle) && _deepEquals(barCollapsingEnabled, other.barCollapsingEnabled) && _deepEquals(presentationStyle, other.presentationStyle) && _deepEquals(colorScheme, other.colorScheme);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+
+  @override
+  String toString() {
+    return 'NativeIosBrowserOptions(dismissButtonStyle: $dismissButtonStyle, barCollapsingEnabled: $barCollapsingEnabled, presentationStyle: $presentationStyle, colorScheme: $colorScheme)';
   }
 }
 
@@ -359,20 +654,44 @@ class _PigeonCodec extends StandardMessageCodec {
     }    else if (value is NativeCheckoutStatus) {
       buffer.putUint8(129);
       writeValue(buffer, value.index);
-    }    else if (value is NativeEventType) {
+    }    else if (value is NativeCloseButtonStyle) {
       buffer.putUint8(130);
       writeValue(buffer, value.index);
-    }    else if (value is StartRequest) {
+    }    else if (value is NativeCloseButtonPosition) {
       buffer.putUint8(131);
+      writeValue(buffer, value.index);
+    }    else if (value is NativeDismissButtonStyle) {
+      buffer.putUint8(132);
+      writeValue(buffer, value.index);
+    }    else if (value is NativePresentationStyle) {
+      buffer.putUint8(133);
+      writeValue(buffer, value.index);
+    }    else if (value is NativeBrowserColorScheme) {
+      buffer.putUint8(134);
+      writeValue(buffer, value.index);
+    }    else if (value is NativeEventType) {
+      buffer.putUint8(135);
+      writeValue(buffer, value.index);
+    }    else if (value is StartRequest) {
+      buffer.putUint8(136);
+      writeValue(buffer, value.encode());
+    }    else if (value is NativeBrowserCustomization) {
+      buffer.putUint8(137);
+      writeValue(buffer, value.encode());
+    }    else if (value is NativeAndroidBrowserOptions) {
+      buffer.putUint8(138);
+      writeValue(buffer, value.encode());
+    }    else if (value is NativeIosBrowserOptions) {
+      buffer.putUint8(139);
       writeValue(buffer, value.encode());
     }    else if (value is NativeCheckoutResult) {
-      buffer.putUint8(132);
+      buffer.putUint8(140);
       writeValue(buffer, value.encode());
     }    else if (value is NativeAbandonedSession) {
-      buffer.putUint8(133);
+      buffer.putUint8(141);
       writeValue(buffer, value.encode());
     }    else if (value is NativeCheckoutEvent) {
-      buffer.putUint8(134);
+      buffer.putUint8(142);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -387,14 +706,35 @@ class _PigeonCodec extends StandardMessageCodec {
         return value == null ? null : NativeCheckoutStatus.values[value];
       case 130:
         final value = readValue(buffer) as int?;
-        return value == null ? null : NativeEventType.values[value];
+        return value == null ? null : NativeCloseButtonStyle.values[value];
       case 131:
-        return StartRequest.decode(readValue(buffer)!);
+        final value = readValue(buffer) as int?;
+        return value == null ? null : NativeCloseButtonPosition.values[value];
       case 132:
-        return NativeCheckoutResult.decode(readValue(buffer)!);
+        final value = readValue(buffer) as int?;
+        return value == null ? null : NativeDismissButtonStyle.values[value];
       case 133:
-        return NativeAbandonedSession.decode(readValue(buffer)!);
+        final value = readValue(buffer) as int?;
+        return value == null ? null : NativePresentationStyle.values[value];
       case 134:
+        final value = readValue(buffer) as int?;
+        return value == null ? null : NativeBrowserColorScheme.values[value];
+      case 135:
+        final value = readValue(buffer) as int?;
+        return value == null ? null : NativeEventType.values[value];
+      case 136:
+        return StartRequest.decode(readValue(buffer)!);
+      case 137:
+        return NativeBrowserCustomization.decode(readValue(buffer)!);
+      case 138:
+        return NativeAndroidBrowserOptions.decode(readValue(buffer)!);
+      case 139:
+        return NativeIosBrowserOptions.decode(readValue(buffer)!);
+      case 140:
+        return NativeCheckoutResult.decode(readValue(buffer)!);
+      case 141:
+        return NativeAbandonedSession.decode(readValue(buffer)!);
+      case 142:
         return NativeCheckoutEvent.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);

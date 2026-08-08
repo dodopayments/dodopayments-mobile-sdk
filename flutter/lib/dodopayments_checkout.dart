@@ -9,9 +9,17 @@ export 'src/checkout_exception.dart' show CheckoutErrorCode, CheckoutException;
 export 'src/checkout_types.dart'
     show
         AbandonedSession,
+        AndroidBrowserOptions,
+        BrowserColorScheme,
+        BrowserCustomization,
         CheckoutEvent,
         CheckoutEventType,
         CheckoutParams,
         CheckoutResult,
-        CheckoutStatus;
+        CheckoutStatus,
+        CloseButtonPosition,
+        CloseButtonStyle,
+        DismissButtonStyle,
+        IosBrowserOptions,
+        PresentationStyle;
 export 'src/dodo_checkout.dart' show DodoCheckout;

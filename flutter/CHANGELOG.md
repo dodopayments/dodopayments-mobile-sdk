@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.1.0
+
+- Add `customization` on `CheckoutParams`: an optional `AndroidBrowserOptions`/
+  `IosBrowserOptions` pair. Android covers toolbar/secondary-toolbar/
+  navigation-bar(-divider) colors, close button style and position,
+  share/title/URL-bar-hiding/bookmarks/downloads toggles, and a forced
+  light/dark color scheme. iOS covers dismiss button style, bar-collapsing,
+  presentation style, and color scheme. Every field is nullable and simply
+  transmitted as `null` when unset, so the underlying platform's own current
+  behavior applies rather than this SDK asserting a value on its behalf.
+- Bumps `com.dodopayments.api:checkout-android` to 1.1.0 and re-vendors the
+  Swift core with the same customization support.
+
 ## 1.0.4
 
 - Fix: swiping down to dismiss the checkout sheet left `start()`'s `Future`
