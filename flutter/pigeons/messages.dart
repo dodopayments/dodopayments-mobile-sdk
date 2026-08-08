@@ -141,7 +141,6 @@ class NativeAndroidBrowserOptions {
     this.urlBarHidingEnabled,
     this.bookmarksButtonEnabled,
     this.downloadsButtonEnabled,
-    this.secondaryToolbarColor,
     this.navigationBarColor,
     this.navigationBarDividerColor,
     this.colorScheme,
@@ -158,7 +157,6 @@ class NativeAndroidBrowserOptions {
   bool? urlBarHidingEnabled;
   bool? bookmarksButtonEnabled;
   bool? downloadsButtonEnabled;
-  int? secondaryToolbarColor;
   int? navigationBarColor;
   int? navigationBarDividerColor;
   NativeBrowserColorScheme? colorScheme;

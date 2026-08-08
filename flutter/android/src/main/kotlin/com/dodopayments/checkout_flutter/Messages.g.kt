@@ -440,7 +440,6 @@ data class NativeAndroidBrowserOptions (
   val urlBarHidingEnabled: Boolean? = null,
   val bookmarksButtonEnabled: Boolean? = null,
   val downloadsButtonEnabled: Boolean? = null,
-  val secondaryToolbarColor: Long? = null,
   val navigationBarColor: Long? = null,
   val navigationBarDividerColor: Long? = null,
   val colorScheme: NativeBrowserColorScheme? = null
@@ -456,11 +455,10 @@ data class NativeAndroidBrowserOptions (
       val urlBarHidingEnabled = pigeonVar_list[5] as Boolean?
       val bookmarksButtonEnabled = pigeonVar_list[6] as Boolean?
       val downloadsButtonEnabled = pigeonVar_list[7] as Boolean?
-      val secondaryToolbarColor = pigeonVar_list[8] as Long?
-      val navigationBarColor = pigeonVar_list[9] as Long?
-      val navigationBarDividerColor = pigeonVar_list[10] as Long?
-      val colorScheme = pigeonVar_list[11] as NativeBrowserColorScheme?
-      return NativeAndroidBrowserOptions(toolbarColor, closeButtonStyle, closeButtonPosition, shareButtonEnabled, showTitleEnabled, urlBarHidingEnabled, bookmarksButtonEnabled, downloadsButtonEnabled, secondaryToolbarColor, navigationBarColor, navigationBarDividerColor, colorScheme)
+      val navigationBarColor = pigeonVar_list[8] as Long?
+      val navigationBarDividerColor = pigeonVar_list[9] as Long?
+      val colorScheme = pigeonVar_list[10] as NativeBrowserColorScheme?
+      return NativeAndroidBrowserOptions(toolbarColor, closeButtonStyle, closeButtonPosition, shareButtonEnabled, showTitleEnabled, urlBarHidingEnabled, bookmarksButtonEnabled, downloadsButtonEnabled, navigationBarColor, navigationBarDividerColor, colorScheme)
     }
   }
   fun toList(): List<Any?> {
@@ -473,7 +471,6 @@ data class NativeAndroidBrowserOptions (
       urlBarHidingEnabled,
       bookmarksButtonEnabled,
       downloadsButtonEnabled,
-      secondaryToolbarColor,
       navigationBarColor,
       navigationBarDividerColor,
       colorScheme,
@@ -487,7 +484,7 @@ data class NativeAndroidBrowserOptions (
       return true
     }
     val other = other as NativeAndroidBrowserOptions
-    return MessagesPigeonUtils.deepEquals(this.toolbarColor, other.toolbarColor) && MessagesPigeonUtils.deepEquals(this.closeButtonStyle, other.closeButtonStyle) && MessagesPigeonUtils.deepEquals(this.closeButtonPosition, other.closeButtonPosition) && MessagesPigeonUtils.deepEquals(this.shareButtonEnabled, other.shareButtonEnabled) && MessagesPigeonUtils.deepEquals(this.showTitleEnabled, other.showTitleEnabled) && MessagesPigeonUtils.deepEquals(this.urlBarHidingEnabled, other.urlBarHidingEnabled) && MessagesPigeonUtils.deepEquals(this.bookmarksButtonEnabled, other.bookmarksButtonEnabled) && MessagesPigeonUtils.deepEquals(this.downloadsButtonEnabled, other.downloadsButtonEnabled) && MessagesPigeonUtils.deepEquals(this.secondaryToolbarColor, other.secondaryToolbarColor) && MessagesPigeonUtils.deepEquals(this.navigationBarColor, other.navigationBarColor) && MessagesPigeonUtils.deepEquals(this.navigationBarDividerColor, other.navigationBarDividerColor) && MessagesPigeonUtils.deepEquals(this.colorScheme, other.colorScheme)
+    return MessagesPigeonUtils.deepEquals(this.toolbarColor, other.toolbarColor) && MessagesPigeonUtils.deepEquals(this.closeButtonStyle, other.closeButtonStyle) && MessagesPigeonUtils.deepEquals(this.closeButtonPosition, other.closeButtonPosition) && MessagesPigeonUtils.deepEquals(this.shareButtonEnabled, other.shareButtonEnabled) && MessagesPigeonUtils.deepEquals(this.showTitleEnabled, other.showTitleEnabled) && MessagesPigeonUtils.deepEquals(this.urlBarHidingEnabled, other.urlBarHidingEnabled) && MessagesPigeonUtils.deepEquals(this.bookmarksButtonEnabled, other.bookmarksButtonEnabled) && MessagesPigeonUtils.deepEquals(this.downloadsButtonEnabled, other.downloadsButtonEnabled) && MessagesPigeonUtils.deepEquals(this.navigationBarColor, other.navigationBarColor) && MessagesPigeonUtils.deepEquals(this.navigationBarDividerColor, other.navigationBarDividerColor) && MessagesPigeonUtils.deepEquals(this.colorScheme, other.colorScheme)
   }
 
   override fun hashCode(): Int {
@@ -500,14 +497,13 @@ data class NativeAndroidBrowserOptions (
     result = 31 * result + MessagesPigeonUtils.deepHash(this.urlBarHidingEnabled)
     result = 31 * result + MessagesPigeonUtils.deepHash(this.bookmarksButtonEnabled)
     result = 31 * result + MessagesPigeonUtils.deepHash(this.downloadsButtonEnabled)
-    result = 31 * result + MessagesPigeonUtils.deepHash(this.secondaryToolbarColor)
     result = 31 * result + MessagesPigeonUtils.deepHash(this.navigationBarColor)
     result = 31 * result + MessagesPigeonUtils.deepHash(this.navigationBarDividerColor)
     result = 31 * result + MessagesPigeonUtils.deepHash(this.colorScheme)
     return result
   }
   override fun toString(): String {
-    return "NativeAndroidBrowserOptions(toolbarColor=$toolbarColor, closeButtonStyle=$closeButtonStyle, closeButtonPosition=$closeButtonPosition, shareButtonEnabled=$shareButtonEnabled, showTitleEnabled=$showTitleEnabled, urlBarHidingEnabled=$urlBarHidingEnabled, bookmarksButtonEnabled=$bookmarksButtonEnabled, downloadsButtonEnabled=$downloadsButtonEnabled, secondaryToolbarColor=$secondaryToolbarColor, navigationBarColor=$navigationBarColor, navigationBarDividerColor=$navigationBarDividerColor, colorScheme=$colorScheme)"
+    return "NativeAndroidBrowserOptions(toolbarColor=$toolbarColor, closeButtonStyle=$closeButtonStyle, closeButtonPosition=$closeButtonPosition, shareButtonEnabled=$shareButtonEnabled, showTitleEnabled=$showTitleEnabled, urlBarHidingEnabled=$urlBarHidingEnabled, bookmarksButtonEnabled=$bookmarksButtonEnabled, downloadsButtonEnabled=$downloadsButtonEnabled, navigationBarColor=$navigationBarColor, navigationBarDividerColor=$navigationBarDividerColor, colorScheme=$colorScheme)"
   }
 }
 

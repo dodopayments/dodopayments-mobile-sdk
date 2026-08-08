@@ -153,7 +153,6 @@ void main() {
             urlBarHidingEnabled: true,
             bookmarksButtonEnabled: false,
             downloadsButtonEnabled: false,
-            secondaryToolbarColor: Color(0xFF445566),
             navigationBarColor: Color(0xFF778899),
             navigationBarDividerColor: Color(0xFFAABBCC),
             colorScheme: BrowserColorScheme.dark,
@@ -179,8 +178,6 @@ void main() {
       expect(android.urlBarHidingEnabled, isTrue);
       expect(android.bookmarksButtonEnabled, isFalse);
       expect(android.downloadsButtonEnabled, isFalse);
-      expect(android.secondaryToolbarColor,
-          const Color(0xFF445566).toARGB32());
       expect(android.navigationBarColor, const Color(0xFF778899).toARGB32());
       expect(android.navigationBarDividerColor,
           const Color(0xFFAABBCC).toARGB32());

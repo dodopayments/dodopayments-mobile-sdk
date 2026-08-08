@@ -309,7 +309,6 @@ class NativeAndroidBrowserOptions {
     this.urlBarHidingEnabled,
     this.bookmarksButtonEnabled,
     this.downloadsButtonEnabled,
-    this.secondaryToolbarColor,
     this.navigationBarColor,
     this.navigationBarDividerColor,
     this.colorScheme,
@@ -333,8 +332,6 @@ class NativeAndroidBrowserOptions {
 
   bool? downloadsButtonEnabled;
 
-  int? secondaryToolbarColor;
-
   int? navigationBarColor;
 
   int? navigationBarDividerColor;
@@ -351,7 +348,6 @@ class NativeAndroidBrowserOptions {
       urlBarHidingEnabled,
       bookmarksButtonEnabled,
       downloadsButtonEnabled,
-      secondaryToolbarColor,
       navigationBarColor,
       navigationBarDividerColor,
       colorScheme,
@@ -372,10 +368,9 @@ class NativeAndroidBrowserOptions {
       urlBarHidingEnabled: result[5] as bool?,
       bookmarksButtonEnabled: result[6] as bool?,
       downloadsButtonEnabled: result[7] as bool?,
-      secondaryToolbarColor: result[8] as int?,
-      navigationBarColor: result[9] as int?,
-      navigationBarDividerColor: result[10] as int?,
-      colorScheme: result[11] as NativeBrowserColorScheme?,
+      navigationBarColor: result[8] as int?,
+      navigationBarDividerColor: result[9] as int?,
+      colorScheme: result[10] as NativeBrowserColorScheme?,
     );
   }
 
@@ -388,7 +383,7 @@ class NativeAndroidBrowserOptions {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(toolbarColor, other.toolbarColor) && _deepEquals(closeButtonStyle, other.closeButtonStyle) && _deepEquals(closeButtonPosition, other.closeButtonPosition) && _deepEquals(shareButtonEnabled, other.shareButtonEnabled) && _deepEquals(showTitleEnabled, other.showTitleEnabled) && _deepEquals(urlBarHidingEnabled, other.urlBarHidingEnabled) && _deepEquals(bookmarksButtonEnabled, other.bookmarksButtonEnabled) && _deepEquals(downloadsButtonEnabled, other.downloadsButtonEnabled) && _deepEquals(secondaryToolbarColor, other.secondaryToolbarColor) && _deepEquals(navigationBarColor, other.navigationBarColor) && _deepEquals(navigationBarDividerColor, other.navigationBarDividerColor) && _deepEquals(colorScheme, other.colorScheme);
+    return _deepEquals(toolbarColor, other.toolbarColor) && _deepEquals(closeButtonStyle, other.closeButtonStyle) && _deepEquals(closeButtonPosition, other.closeButtonPosition) && _deepEquals(shareButtonEnabled, other.shareButtonEnabled) && _deepEquals(showTitleEnabled, other.showTitleEnabled) && _deepEquals(urlBarHidingEnabled, other.urlBarHidingEnabled) && _deepEquals(bookmarksButtonEnabled, other.bookmarksButtonEnabled) && _deepEquals(downloadsButtonEnabled, other.downloadsButtonEnabled) && _deepEquals(navigationBarColor, other.navigationBarColor) && _deepEquals(navigationBarDividerColor, other.navigationBarDividerColor) && _deepEquals(colorScheme, other.colorScheme);
   }
 
   @override
@@ -397,7 +392,7 @@ class NativeAndroidBrowserOptions {
 
   @override
   String toString() {
-    return 'NativeAndroidBrowserOptions(toolbarColor: $toolbarColor, closeButtonStyle: $closeButtonStyle, closeButtonPosition: $closeButtonPosition, shareButtonEnabled: $shareButtonEnabled, showTitleEnabled: $showTitleEnabled, urlBarHidingEnabled: $urlBarHidingEnabled, bookmarksButtonEnabled: $bookmarksButtonEnabled, downloadsButtonEnabled: $downloadsButtonEnabled, secondaryToolbarColor: $secondaryToolbarColor, navigationBarColor: $navigationBarColor, navigationBarDividerColor: $navigationBarDividerColor, colorScheme: $colorScheme)';
+    return 'NativeAndroidBrowserOptions(toolbarColor: $toolbarColor, closeButtonStyle: $closeButtonStyle, closeButtonPosition: $closeButtonPosition, shareButtonEnabled: $shareButtonEnabled, showTitleEnabled: $showTitleEnabled, urlBarHidingEnabled: $urlBarHidingEnabled, bookmarksButtonEnabled: $bookmarksButtonEnabled, downloadsButtonEnabled: $downloadsButtonEnabled, navigationBarColor: $navigationBarColor, navigationBarDividerColor: $navigationBarDividerColor, colorScheme: $colorScheme)';
   }
 }
 
