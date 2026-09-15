@@ -25,7 +25,7 @@ jobs:
       # submodules: see the note in release-react-native.yml. scripts/sync-ios-core.sh
       # vendors the iOS core out of the swift/ submodule, so a plain checkout
       # leaves it empty and the vendoring step fails.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: true
           token: ${{ secrets.SWIFT_SUBMODULE_TOKEN || secrets.GITHUB_TOKEN }}
