@@ -3,7 +3,7 @@
 // This module contains NO checkout logic — it bridges the Pigeon channel to
 // the native Android core, com.github.dodopayments:dodopayments-mobile-sdk.
 group = "com.dodopayments.checkout_flutter"
-version = "1.1.0"
+version = "1.1.1"
 
 buildscript {
     // Kotlin and compileSdk match mobile-sdk/kotlin (2.1.20 / 35). AGP here is
