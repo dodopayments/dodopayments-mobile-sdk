@@ -150,7 +150,7 @@ The checkout browser's toolbar, buttons, and color scheme can be customized via 
 
 | Code | Native code | Meaning |
 |---|---|---|
-| `invalidCheckoutUrl` | `INVALID_CHECKOUT_URL` | Not a `checkout.dodopayments.com` / `test.checkout.dodopayments.com` session URL |
+| `invalidCheckoutUrl` | `INVALID_CHECKOUT_URL` | Not a `checkout.dodopayments.com` / `test.checkout.dodopayments.com` `/session/…` or payment link URL |
 | `invalidReturnUrl` | `INVALID_RETURN_URL` | Not a valid absolute URL |
 | `alreadyInProgress` | `ALREADY_IN_PROGRESS` | A checkout is already running (only one at a time) |
 | `platformError` | `PLATFORM_ERROR` | Unexpected platform failure |
