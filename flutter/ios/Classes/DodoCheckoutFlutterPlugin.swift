@@ -26,7 +26,7 @@ extension DodoCheckoutFlutterPlugin: DodoCheckoutHostApi {
     request: StartRequest, completion: @escaping (Result<NativeCheckoutResult, Error>) -> Void
   ) {
     // URL parse failures surface the same codes the core uses for invalid
-    // input; the core re-validates (host allow-list, /session/ path, ...).
+    // input; the core re-validates (host allow-list, /session/ or payment link path, ...).
     guard let checkoutUrl = URL(string: request.checkoutUrl) else {
       completion(
         .failure(
