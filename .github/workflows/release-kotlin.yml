@@ -1,7 +1,8 @@
 name: Release Kotlin
 
-# Triggered by pushing a tag like kotlin-v1.0.0. Publishes to Maven Central via
-# the vanniktech plugin configured in kotlin/build.gradle.kts.
+# Triggered by pushing a tag like kotlin-v1.1.2. JitPack builds the tag from
+# source (see jitpack.yml); this starts that build and fails unless JitPack
+# then serves a complete POM and AAR.
 on:
   push:
     tags:
@@ -10,6 +11,7 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     defaults:
       run:
         working-directory: kotlin
@@ -21,28 +23,67 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Verify the tag matches the version being published
+      - name: Verify the tag matches the version in build.gradle.kts
         env:
           TAG: ${{ github.ref_name }}
         run: |
-          VERSION="$(sed -n 's/^version = "\(.*\)"$/\1/p' build.gradle.kts)"
+          VERSION="$(sed -n 's/^version = .*"\(.*\)"$/\1/p' build.gradle.kts)"
           if [ -z "$VERSION" ]; then
             echo "Could not read version from kotlin/build.gradle.kts." >&2
             exit 1
           fi
-          if [ "$TAG" != "kotlin-v${VERSION}" ]; then
+          if [ "$TAG" != "$VERSION" ]; then
             echo "Tag $TAG does not match build.gradle.kts version $VERSION." >&2
-            echo "Gradle publishes the version in build.gradle.kts, not the one in the tag. Aborting." >&2
             exit 1
           fi
 
       - run: ./gradlew test
 
-      - name: Publish to Maven Central
-        run: ./gradlew publishToMavenCentral --no-configuration-cache
+      - name: Build on JitPack and download the artifacts
         env:
-          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
-          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_PRIVATE_KEY }}
-          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_PASSPHRASE }}
-          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.GPG_KEY_ID }}
+          VERSION: ${{ github.ref_name }}
+          REPO: ${{ github.event.repository.name }}
+        run: |-
+          set -euo pipefail
+          BASE="https://jitpack.io/com/github/dodopayments/${REPO}"
+          echo "Start the JitPack build of ${REPO} ${VERSION}"
+          curl -s -o /dev/null --max-time 60 "${BASE}/${VERSION}/build.log" || true
+          deadline=$(( $(date +%s) + 50 * 60 ))
+          while true; do
+            status="$(curl -s --max-time 60 "https://jitpack.io/api/builds/com.github.dodopayments/${REPO}" | jq -r --arg r "${REPO}" --arg v "${VERSION}" '.["com.github.dodopayments"][$r][$v] // "pending"' || echo pending)"
+            echo "$(date -u +%H:%M:%S) JitPack status: ${status}"
+            if [ "${status}" = "ok" ]; then
+              break
+            fi
+            if [ "${status}" = "Error" ]; then
+              echo "::error::The JitPack build failed. Log: ${BASE}/${VERSION}/build.log"
+              curl -s --max-time 60 "${BASE}/${VERSION}/build.log" | tail -n 60 || true
+              exit 1
+            fi
+            if [ "$(date +%s)" -gt "${deadline}" ]; then
+              echo "::error::The JitPack build did not complete in 50 minutes. Log: ${BASE}/${VERSION}/build.log"
+              exit 1
+            fi
+            sleep 30
+          done
+          module="${REPO}"
+          for ext in pom aar; do
+            url="${BASE}/${VERSION}/${module}-${VERSION}.${ext}"
+            # The first download after a build can be incomplete, so retry and check the archive.
+            ok=0
+            for attempt in 1 2 3; do
+              if curl -sfL --max-time 300 -o "/tmp/${module}.${ext}" "${url}"; then
+                if [ "${ext}" != "aar" ] || unzip -tq "/tmp/${module}.${ext}" > /dev/null; then
+                  ok=1
+                  break
+                fi
+              fi
+              sleep 20
+            done
+            if [ "${ok}" != "1" ]; then
+              echo "::error::Cannot download a complete file from ${url}"
+              exit 1
+            fi
+            echo "OK ${url} ($(wc -c < "/tmp/${module}.${ext}") bytes)"
+          done
+          echo "Gradle: implementation(\"com.github.dodopayments:${REPO}:${VERSION}\")"

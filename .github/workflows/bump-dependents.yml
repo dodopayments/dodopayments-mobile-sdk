@@ -32,17 +32,14 @@ jobs:
       - name: Bump the Kotlin core version pin in RN and Flutter
         run: |
           TAG="${{ github.event.workflow_run.head_branch }}"
-          VERSION="${TAG#kotlin-v}"
-          # The two build.gradle files are the pins that actually affect a
-          # build; the two READMEs are install snippets for the same
-          # coordinate. They're swept together so the docs can't drift a
-          # release behind the pins (which is what happened after 1.0.2).
-          # The versionless coordinate in README.md's package table has no
-          # trailing ":version", so this pattern leaves it alone.
-          sed -i "s/com\.dodopayments\.api:checkout-android:[0-9.]*/com.dodopayments.api:checkout-android:${VERSION}/" \
+          # JitPack uses the git tag (e.g. kotlin-v1.1.2) as the version. The
+          # two build.gradle files are the pins that affect a build; the two
+          # READMEs are install snippets for the same coordinate, swept together
+          # so the docs can't drift a release behind the pins.
+          sed -i "s/com\.github\.dodopayments:dodopayments-mobile-sdk:kotlin-v[0-9.]*/com.github.dodopayments:dodopayments-mobile-sdk:${TAG}/" \
             react-native/android/build.gradle flutter/android/build.gradle \
             README.md kotlin/README.md
-          echo "BUMP_SUMMARY=Bump com.dodopayments.api:checkout-android to ${VERSION} in react-native and flutter" >> "$GITHUB_ENV"
+          echo "BUMP_SUMMARY=Bump checkout-android to ${TAG} in react-native and flutter" >> "$GITHUB_ENV"
 
       - name: Open a PR with the bump
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1

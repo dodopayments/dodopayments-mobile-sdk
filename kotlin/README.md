@@ -5,11 +5,27 @@ and get a clean result from one call.
 
 ## Install
 
+JitPack distributes this SDK. Add the JitPack repository, then the dependency:
+
 ```kotlin
+// settings.gradle.kts
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url = uri("https://jitpack.io") }
+    }
+}
+
+// app/build.gradle.kts
 dependencies {
-    implementation("com.dodopayments.api:checkout-android:1.1.1")
+    implementation("com.github.dodopayments:dodopayments-mobile-sdk:kotlin-v1.1.2")
 }
 ```
+
+Versions up to 1.1.0 stay on Maven Central as `com.dodopayments.api:checkout-android`.
+JitPack builds a version from source on its first request, so the first
+download of a new version can be slow.
 
 Requirements: minSdk 23, Kotlin. Dependencies: `androidx.activity` +
 `androidx.browser` + kotlinx-coroutines only. The SDK contains zero networking

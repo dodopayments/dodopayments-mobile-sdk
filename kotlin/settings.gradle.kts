@@ -13,4 +13,4 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "checkout-android"
+rootProject.name = "dodopayments-mobile-sdk"

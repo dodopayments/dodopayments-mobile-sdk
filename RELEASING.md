@@ -7,20 +7,13 @@ handles the rest.
 
 ## One-time setup (accounts, repos, secrets)
 
-### Kotlin → Maven Central
+### Kotlin → JitPack
 
-1. Create an account at [central.sonatype.com](https://central.sonatype.com)
-   and verify the `com.dodopayments` namespace.
-2. Generate a user token (Account → Generate User Token) — this gives a
-   username/password pair, not your login credentials.
-3. Generate a GPG keypair for signing artifacts (`gpg --full-generate-key`),
-   and publish the public key to a keyserver (e.g.
-   `gpg --keyserver keyserver.ubuntu.com --send-keys <KEY_ID>`).
-4. Add as GitHub Actions secrets (Settings → Secrets and variables → Actions):
-   - `MAVEN_CENTRAL_USERNAME`, `MAVEN_CENTRAL_PASSWORD` — the user token
-   - `GPG_PRIVATE_KEY` — export with `gpg --export-secret-keys --armor <KEY_ID>`
-   - `GPG_PASSPHRASE` — the key's passphrase
-   - `GPG_KEY_ID` — the key's short ID
+No account or secrets. JitPack builds the Android core from source on the
+first request for a tag, following `jitpack.yml` at the repo root, and serves
+it as `com.github.dodopayments:dodopayments-mobile-sdk:<tag>`.
+Versions up to 1.1.0 were published to Maven Central as
+`com.dodopayments.api:checkout-android` and stay there.
 
 ### React Native → npm
 
@@ -115,7 +108,7 @@ tag format and what happens:
 
 | Package | Bump | Tag | Workflow |
 |---|---|---|---|
-| Kotlin | `version` in `kotlin/build.gradle.kts` | `kotlin-v1.0.1` | `.github/workflows/release-kotlin.yml` — tests, then publishes to Maven Central |
+| Kotlin | default `version` in `kotlin/build.gradle.kts` (the full tag, e.g. `kotlin-v1.0.1`) | `kotlin-v1.0.1` | `.github/workflows/release-kotlin.yml` — tests, then triggers the JitPack build of the tag and fails unless JitPack serves the POM and AAR |
 | React Native | `version` in `react-native/package.json` | `react-native-v1.0.1` | `.github/workflows/release-react-native.yml` - vendors the Swift core, builds `lib/`, tests, verifies both the build output and the vendored core are in the pack, publishes to npm |
 | Flutter | `version` in `flutter/pubspec.yaml`, `flutter/android/build.gradle`, and `flutter/ios/dodopayments_checkout.podspec` (all three, kept in sync) | `flutter-v1.0.1` | `.github/workflows/release-flutter.yml` — same vendor-then-verify pattern, publishes to pub.dev |
 | Swift | *(no version field — SPM versions come purely from the tag)* | `v1.0.1` | Tag `dodopayments-mobile-sdk-ios` directly (its own CI builds/tests); optionally bump this repo's `swift` submodule pointer to match |
@@ -129,8 +122,8 @@ tag would silently publish the wrong version or fail late as a duplicate.
 
 ## Cross-package dependency bumps
 
-React Native and Flutter both pin a specific Kotlin version as a Maven
-coordinate (`com.dodopayments:checkout-android:X.Y.Z`) in their respective
+React Native and Flutter both pin a specific Kotlin version as a JitPack
+coordinate (`com.github.dodopayments:dodopayments-mobile-sdk:kotlin-vX.Y.Z`) in their respective
 `android/build.gradle`. Neither picks up a new Kotlin release automatically —
 after a Kotlin release succeeds, `.github/workflows/bump-dependents.yml`
 opens a PR bumping that pin in both React Native and Flutter. It does **not**

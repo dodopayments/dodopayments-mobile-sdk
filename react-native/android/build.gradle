@@ -50,6 +50,7 @@ android {
 repositories {
   google()
   mavenCentral()
+  maven { url "https://jitpack.io" } // serves the Android core
   mavenLocal() // local dev: publish kotlin/ to mavenLocal
 }
 
@@ -58,7 +59,7 @@ dependencies {
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0"
 
   // Checkout logic lives in the Android core SDK.
-  implementation "com.dodopayments.api:checkout-android:1.1.0"
+  implementation "com.github.dodopayments:dodopayments-mobile-sdk:kotlin-v1.1.2"
 }
 
 if (isNewArchitectureEnabled()) {

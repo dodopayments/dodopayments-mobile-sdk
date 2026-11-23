@@ -1,0 +1,6 @@
+# JitPack builds the Android core (kotlin/) from source and serves it from https://jitpack.io
+# as com.github.dodopayments:dodopayments-mobile-sdk:<git tag>, e.g. kotlin-v1.1.2.
+jdk:
+  - openjdk17
+install:
+  - cd kotlin && ./gradlew publishToMavenLocal -PjitpackVersion="${VERSION}" --no-daemon --no-configuration-cache --stacktrace
