@@ -43,6 +43,28 @@ class ValidationAndRoutingTest {
         UrlValidator.validateCheckoutUrl("https://test.checkout.dodopayments.com/session/cks_test_1")
     }
 
+    @Test
+    fun paymentLinkCheckoutUrlPasses() {
+        UrlValidator.validateCheckoutUrl(
+            "https://test.checkout.dodopayments.com/je0vj2kM?theme=system&showOrderDetails=true&showOnDemandTag=true"
+        )
+        UrlValidator.validateCheckoutUrl("https://checkout.dodopayments.com/aB3_x-9Z")
+    }
+
+    @Test
+    fun malformedPaymentLinkCheckoutUrlThrows() {
+        listOf(
+            "https://checkout.dodopayments.com/je0vj2k",
+            "https://checkout.dodopayments.com/je0vj2kMx",
+            "https://checkout.dodopayments.com/je0vj2kM/extra",
+            "https://checkout.dodopayments.com/je0v.2kM",
+            "https://evil.com/je0vj2kM",
+            "http://checkout.dodopayments.com/je0vj2kM"
+        ).forEach { url ->
+            expectError(CheckoutError.Code.INVALID_CHECKOUT_URL) { UrlValidator.validateCheckoutUrl(url) }
+        }
+    }
+
     // U11: malformed returnUrl → INVALID_RETURN_URL.
     @Test
     fun invalidReturnUrlThrows() {

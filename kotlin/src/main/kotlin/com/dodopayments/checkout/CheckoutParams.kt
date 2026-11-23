@@ -12,7 +12,8 @@ data class CheckoutParams @JvmOverloads constructor(
     /**
      * The session URL from your backend. Must be a
      * `checkout.dodopayments.com` / `test.checkout.dodopayments.com`
-     * `/session/…` URL.
+     * `/session/…` URL, or the `/{paymentLinkId}` URL a `confirm: true`
+     * session returns.
      */
     val checkoutUrl: String,
     /**

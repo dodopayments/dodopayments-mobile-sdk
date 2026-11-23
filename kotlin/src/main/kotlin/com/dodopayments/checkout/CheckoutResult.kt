@@ -29,7 +29,9 @@ enum class CheckoutStatus {
      * redirect produces exactly this status.
      *
      * Call [DodoCheckout.getAbandonedSession] for the `cks_…` session id,
-     * reconcile it server-side, and show the outcome that comes back.
+     * reconcile it server-side, and show the outcome that comes back. Payment
+     * link checkouts (`confirm: true`) have no session id on record; use the
+     * `session_id` / `payment_id` from the create response instead.
      */
     CANCELLED,
 

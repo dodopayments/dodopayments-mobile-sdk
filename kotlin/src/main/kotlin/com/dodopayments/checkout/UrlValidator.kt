@@ -12,22 +12,26 @@ internal object UrlValidator {
         "test.checkout.dodopayments.com"
     )
 
+    /** `confirm: true` sessions return `/{paymentLinkId}` instead of `/session/…`. */
+    private val PAYMENT_LINK_PATH = Regex("^/[A-Za-z0-9_-]{8}/?$")
+
     /**
      * Throws [CheckoutError] with [CheckoutError.Code.INVALID_CHECKOUT_URL]
-     * unless [url] is an https Dodo checkout session URL (`/session/…` path on
-     * an allowed host).
+     * unless [url] is an https Dodo checkout URL on an allowed host whose path
+     * is `/session/…` or an 8-character payment link id.
      */
     fun validateCheckoutUrl(url: String) {
         val parts = UrlParts.from(url)
         val scheme = parts.scheme?.lowercase()
         val host = parts.host?.lowercase()
+        val path = parts.path.orEmpty()
         val valid = scheme == "https" &&
             host != null && host in ALLOWED_CHECKOUT_HOSTS &&
-            parts.path?.startsWith("/session/") == true
+            (path.startsWith("/session/") || PAYMENT_LINK_PATH.matches(path))
         if (!valid) {
             throw CheckoutError(
                 CheckoutError.Code.INVALID_CHECKOUT_URL,
-                "checkoutUrl must be a checkout.dodopayments.com or test.checkout.dodopayments.com /session/ URL."
+                "checkoutUrl must be a checkout.dodopayments.com or test.checkout.dodopayments.com /session/ or payment link URL."
             )
         }
     }

@@ -14,7 +14,8 @@ class CheckoutParams {
 
   /// The session URL from your backend. Must be a
   /// `checkout.dodopayments.com` / `test.checkout.dodopayments.com`
-  /// `/session/…` URL. Test vs live is read from the host — no mode flag.
+  /// `/session/…` URL, or the `/{paymentLinkId}` URL a `confirm: true`
+  /// session returns. Test vs live is read from the host — no mode flag.
   final Uri checkoutUrl;
 
   /// The URL the SDK watches for. Any absolute URL the checkout ends up
