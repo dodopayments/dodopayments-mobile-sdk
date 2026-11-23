@@ -6,11 +6,11 @@ plugins {
     id("com.vanniktech.maven.publish") version "0.37.0"
 }
 
-// com.dodopayments.api is the namespace verified on Maven Central (it already
-// hosts dodo-payments-java and dodo-payments-kotlin). The bare com.dodopayments
-// namespace is not registered, and Central rejects deployments to it.
-group = "com.dodopayments.api"
-version = "1.1.1"
+// Releases are served by JitPack (see ../jitpack.yml), which uses the git tag
+// as the version. The defaults match those coordinates so a local
+// publishToMavenLocal or composite build resolves the same dependency.
+group = findProperty("jitpackGroup")?.toString() ?: "com.github.dodopayments.dodopayments-mobile-sdk"
+version = findProperty("jitpackVersion")?.toString() ?: "kotlin-v1.1.2"
 
 android {
     namespace = "com.dodopayments.checkout"
@@ -49,17 +49,7 @@ dependencies {
 }
 
 mavenPublishing {
-    // Credentials come from mavenCentralUsername/mavenCentralPassword and
-    // signingInMemoryKey/signingInMemoryKeyPassword/signingInMemoryKeyId, set
-    // as ORG_GRADLE_PROJECT_* environment variables in CI. Signing only when
-    // a key is actually configured, so local publishToMavenLocal (used by the
-    // demo apps) keeps working without a GPG key.
-    publishToMavenCentral(automaticRelease = true)
-    if (project.hasProperty("signingInMemoryKey")) {
-        signAllPublications()
-    }
-
-    coordinates("com.dodopayments.api", "checkout-android", project.version.toString())
+    coordinates(project.group.toString(), "checkout-android", project.version.toString())
 
     pom {
         name.set("Dodo Payments Checkout for Android")

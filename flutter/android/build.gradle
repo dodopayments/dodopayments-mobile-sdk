@@ -1,7 +1,7 @@
 // Android side of the dodopayments_checkout Flutter plugin.
 //
 // This module contains NO checkout logic — it bridges the Pigeon channel to
-// the native Android core, com.dodopayments.api:checkout-android.
+// the native Android core, com.github.dodopayments.dodopayments-mobile-sdk:checkout-android.
 group = "com.dodopayments.checkout_flutter"
 version = "1.1.0"
 
@@ -25,13 +25,14 @@ rootProject.allprojects {
     repositories {
         google()
         mavenCentral()
+        maven { url "https://jitpack.io" } // serves checkout-android
         // LOCAL DEV: `./gradlew publishToMavenLocal` in mobile-sdk/kotlin so
-        // com.dodopayments.api:checkout-android resolves without Maven Central.
+        // checkout-android resolves without JitPack.
         // Harmless for published consumers (empty unless the artifact is local).
         mavenLocal()
         // Alternatively, composite-build from the *consuming app's*
         // settings.gradle: includeBuild("<path-to>/mobile-sdk/kotlin")
-        // (Gradle substitutes com.dodopayments.api:checkout-android automatically.)
+        // (Gradle substitutes com.github.dodopayments.dodopayments-mobile-sdk:checkout-android automatically.)
     }
 }
 
@@ -67,6 +68,6 @@ android {
 dependencies {
     // The real SDK. All checkout logic (Custom Tab launch, return
     // interception, result parsing, abandoned-session store) lives here.
-    implementation("com.dodopayments.api:checkout-android:1.1.0")
+    implementation("com.github.dodopayments.dodopayments-mobile-sdk:checkout-android:kotlin-v1.1.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 }
