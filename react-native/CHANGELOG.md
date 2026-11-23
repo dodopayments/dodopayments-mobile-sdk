@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.2.2
+
+- Fix: `checkoutUrl` now also accepts the 8-character payment link URL
+  (`https://checkout.dodopayments.com/{id}`) that `POST /checkouts` returns
+  when `confirm: true`, on both iOS (core v1.1.1) and Android (core
+  kotlin-v1.1.2). `/session/…` URLs are validated as before. Payment link
+  URLs carry no `cks_…` id, so `getAbandonedSession()` returns null for
+  them; reconcile with the `session_id` / `payment_id` from the create
+  response.
+- The Android core now comes from JitPack
+  (`com.github.dodopayments:dodopayments-mobile-sdk:kotlin-v1.1.2`), and
+  the plugin adds the `https://jitpack.io` repository itself.
+
 ## 1.2.0
 
 - Add `customization` on `start()`: an optional `BrowserCustomization` with
