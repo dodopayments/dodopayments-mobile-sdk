@@ -31,7 +31,7 @@ on iOS, a Custom Tab (`androidx.browser.customtabs`) on Android.
 maven { url = uri("https://jitpack.io") }
 
 // build.gradle.kts
-implementation("com.github.dodopayments.dodopayments-mobile-sdk:checkout-android:kotlin-v1.1.2")
+implementation("com.github.dodopayments:dodopayments-mobile-sdk:kotlin-v1.1.2")
 ```
 
 **React Native**
@@ -55,7 +55,7 @@ Check each SDK's README (linked below) for setup and usage.
 | Platform | Package | Docs |
 |---|---|---|
 | iOS (Swift) | [Swift Package Manager](https://github.com/dodopayments/dodopayments-mobile-sdk-ios) | [dodopayments-mobile-sdk-ios/README.md](https://github.com/dodopayments/dodopayments-mobile-sdk-ios/blob/main/README.md) |
-| Android (Kotlin) | `com.github.dodopayments.dodopayments-mobile-sdk:checkout-android` (JitPack) | [kotlin/README.md](kotlin/README.md) |
+| Android (Kotlin) | `com.github.dodopayments:dodopayments-mobile-sdk` (JitPack) | [kotlin/README.md](kotlin/README.md) |
 | React Native | [`@dodopayments/react-native-checkout`](https://www.npmjs.com/package/@dodopayments/react-native-checkout) | [react-native/README.md](react-native/README.md) |
 | Flutter | [`dodopayments_checkout`](https://pub.dev/packages/dodopayments_checkout) | [flutter/README.md](flutter/README.md) |
 

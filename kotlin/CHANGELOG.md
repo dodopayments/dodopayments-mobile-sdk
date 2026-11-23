@@ -3,7 +3,7 @@
 ## 1.1.2
 
 - Distribution moves from Maven Central to JitPack. The dependency is now
-  `com.github.dodopayments.dodopayments-mobile-sdk:checkout-android:kotlin-v1.1.2`
+  `com.github.dodopayments:dodopayments-mobile-sdk:kotlin-v1.1.2`
   and needs the `https://jitpack.io` repository. Versions up to 1.1.0 stay on
   Maven Central as `com.dodopayments.api:checkout-android`.
 - Includes the 1.1.1 fix below. 1.1.1 itself was never published.

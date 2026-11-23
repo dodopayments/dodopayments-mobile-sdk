@@ -19,7 +19,7 @@ dependencyResolutionManagement {
 
 // app/build.gradle.kts
 dependencies {
-    implementation("com.github.dodopayments.dodopayments-mobile-sdk:checkout-android:kotlin-v1.1.2")
+    implementation("com.github.dodopayments:dodopayments-mobile-sdk:kotlin-v1.1.2")
 }
 ```
 

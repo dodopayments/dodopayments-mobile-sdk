@@ -66,9 +66,9 @@ jobs:
             fi
             sleep 30
           done
-          module=checkout-android
+          module="${REPO}"
           for ext in pom aar; do
-            url="${BASE}/${module}/${VERSION}/${module}-${VERSION}.${ext}"
+            url="${BASE}/${VERSION}/${module}-${VERSION}.${ext}"
             # The first download after a build can be incomplete, so retry and check the archive.
             ok=0
             for attempt in 1 2 3; do
@@ -86,4 +86,4 @@ jobs:
             fi
             echo "OK ${url} ($(wc -c < "/tmp/${module}.${ext}") bytes)"
           done
-          echo "Gradle: implementation(\"com.github.dodopayments.${REPO}:${module}:${VERSION}\")"
+          echo "Gradle: implementation(\"com.github.dodopayments:${REPO}:${VERSION}\")"

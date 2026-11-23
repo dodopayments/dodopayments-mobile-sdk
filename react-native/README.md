@@ -23,7 +23,7 @@ iOS 16+, Android minSdk 24.
 npm i @dodopayments/react-native-checkout
 ```
 
-- **Android:** autolinked. Pulls `checkout-android` from JitPack, which the React Native Gradle plugin
+- **Android:** autolinked. Pulls the Android core from JitPack, which the React Native Gradle plugin
   already adds to your build. If you set `includeJitpackRepository=false`,
   add `maven { url "https://jitpack.io" }` to your app's repositories.
 - **iOS:** `cd ios && pod install`. The Swift core is bundled in the package.

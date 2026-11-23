@@ -36,7 +36,7 @@ jobs:
           # two build.gradle files are the pins that affect a build; the two
           # READMEs are install snippets for the same coordinate, swept together
           # so the docs can't drift a release behind the pins.
-          sed -i "s/com\.github\.dodopayments\.dodopayments-mobile-sdk:checkout-android:kotlin-v[0-9.]*/com.github.dodopayments.dodopayments-mobile-sdk:checkout-android:${TAG}/" \
+          sed -i "s/com\.github\.dodopayments:dodopayments-mobile-sdk:kotlin-v[0-9.]*/com.github.dodopayments:dodopayments-mobile-sdk:${TAG}/" \
             react-native/android/build.gradle flutter/android/build.gradle \
             README.md kotlin/README.md
           echo "BUMP_SUMMARY=Bump checkout-android to ${TAG} in react-native and flutter" >> "$GITHUB_ENV"

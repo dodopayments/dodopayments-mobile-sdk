@@ -11,7 +11,7 @@ handles the rest.
 
 No account or secrets. JitPack builds the Android core from source on the
 first request for a tag, following `jitpack.yml` at the repo root, and serves
-it as `com.github.dodopayments.dodopayments-mobile-sdk:checkout-android:<tag>`.
+it as `com.github.dodopayments:dodopayments-mobile-sdk:<tag>`.
 Versions up to 1.1.0 were published to Maven Central as
 `com.dodopayments.api:checkout-android` and stay there.
 
@@ -123,7 +123,7 @@ tag would silently publish the wrong version or fail late as a duplicate.
 ## Cross-package dependency bumps
 
 React Native and Flutter both pin a specific Kotlin version as a JitPack
-coordinate (`com.github.dodopayments.dodopayments-mobile-sdk:checkout-android:kotlin-vX.Y.Z`) in their respective
+coordinate (`com.github.dodopayments:dodopayments-mobile-sdk:kotlin-vX.Y.Z`) in their respective
 `android/build.gradle`. Neither picks up a new Kotlin release automatically —
 after a Kotlin release succeeds, `.github/workflows/bump-dependents.yml`
 opens a PR bumping that pin in both React Native and Flutter. It does **not**
