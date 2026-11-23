@@ -33,7 +33,12 @@ internal interface KeyValueStore {
 internal class AbandonedSessionStore(private val store: KeyValueStore) {
 
     fun record(checkoutUrl: String, atMillis: Long = System.currentTimeMillis()) {
-        val sessionId = sessionIdFrom(checkoutUrl) ?: return
+        // The record must always describe the latest checkout, so a URL with
+        // no session id drops any earlier record rather than leaving it stale.
+        val sessionId = sessionIdFrom(checkoutUrl) ?: run {
+            clear()
+            return
+        }
         store.put(SESSION_KEY, sessionId)
         store.put(CREATED_AT_KEY, atMillis.toString())
     }
@@ -76,7 +81,10 @@ internal class AbandonedSessionStore(private val store: KeyValueStore) {
         private const val SESSION_KEY = "com.dodopayments.checkout.abandoned.sessionId"
         private const val CREATED_AT_KEY = "com.dodopayments.checkout.abandoned.createdAt"
 
-        /** Extracts the `cks_…` session id from a checkout URL's `/session/{id}` path. */
+        /**
+         * Extracts the `cks_…` session id from a checkout URL's `/session/{id}`
+         * path. Payment link URLs (`confirm: true` sessions) have none.
+         */
         fun sessionIdFrom(checkoutUrl: String): String? {
             val path = UrlParts.from(checkoutUrl).path ?: return null
             val parts = path.split("/").filter { it.isNotEmpty() }

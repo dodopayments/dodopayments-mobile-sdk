@@ -97,4 +97,14 @@ class AbandonedSessionStoreTest {
         assertNull(subject.current())
         assertEquals(emptyMap<String, String>(), store.values)
     }
+
+    @Test
+    fun paymentLinkUrlClearsEarlierRecord() {
+        val store = FakeKeyValueStore()
+        val subject = AbandonedSessionStore(store)
+        subject.record("https://checkout.dodopayments.com/session/cks_xyz")
+        subject.record("https://checkout.dodopayments.com/je0vj2kM")
+        assertNull(subject.current())
+        assertEquals(emptyMap<String, String>(), store.values)
+    }
 }
