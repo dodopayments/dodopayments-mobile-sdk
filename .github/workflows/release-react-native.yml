@@ -25,12 +25,12 @@ jobs:
       # While that repo is internal, GITHUB_TOKEN cannot read it: set
       # SWIFT_SUBMODULE_TOKEN to a PAT with read access to this repo *and* the
       # iOS repo. Once the iOS repo is public, the fallback is enough.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: true
           token: ${{ secrets.SWIFT_SUBMODULE_TOKEN || secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 20
           registry-url: "https://registry.npmjs.org"
